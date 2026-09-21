@@ -1,0 +1,10 @@
+[package]
+name = "rpl_ast"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Abstract Syntax Tree data structures for the RPL programming language"
+
+[dependencies]
+thiserror = "2"

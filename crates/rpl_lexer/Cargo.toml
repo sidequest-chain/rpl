@@ -1,0 +1,12 @@
+[package]
+name = "rpl_lexer"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Lexical analyzer (tokenizer) for the RPL programming language"
+
+[dependencies]
+logos = "0.14"
+thiserror = "2"
+rpl_ast = { path = "../rpl_ast" }

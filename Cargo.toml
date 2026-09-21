@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rpl_ast",
+    "crates/rpl_lexer",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["RPL Team"]
+license = "MIT OR Apache-2.0"
