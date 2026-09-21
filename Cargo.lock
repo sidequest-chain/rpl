@@ -94,6 +94,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "rpl_parser"
+version = "0.1.0"
+dependencies = [
+ "rpl_ast",
+ "rpl_lexer",
+ "thiserror",
+]
+
+[[package]]
+name = "rpl_typechecker"
+version = "0.1.0"
+dependencies = [
+ "rpl_ast",
+ "rpl_parser",
+ "thiserror",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"

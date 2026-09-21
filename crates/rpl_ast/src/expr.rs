@@ -1,4 +1,4 @@
-//! Recursive expression tree data structures.
+﻿//! Recursive expression tree data structures.
 
 use crate::literal::Literal;
 use crate::op::{BinaryOp, UnaryOp};
@@ -74,6 +74,54 @@ pub enum Expr {
         span: Span,
     },
 
+    /// Indexing operation (`target[index]`).
+    Index {
+        /// Target collection expression being indexed.
+        target: Box<Expr>,
+        /// Index expression within brackets.
+        index: Box<Expr>,
+        /// Source code span of the indexing expression.
+        span: Span,
+    },
+
+    /// Array/list literal expression (`[item1, item2, ...]`).
+    List {
+        /// Elements contained in the list literal.
+        elements: Vec<Expr>,
+        /// Source code span of the list literal.
+        span: Span,
+    },
+
+    /// Numeric or iterable range (`start..end`).
+    Range {
+        /// Start boundary of the range.
+        start: Box<Expr>,
+        /// End boundary of the range.
+        end: Box<Expr>,
+        /// Source code span of the range expression.
+        span: Span,
+    },
+
+    /// Named constructor argument or field initializer (`name: value`).
+    NamedArg {
+        /// Field identifier name.
+        name: String,
+        /// Field value expression.
+        value: Box<Expr>,
+        /// Source code span of the named argument.
+        span: Span,
+    },
+
+    /// Lambda / anonymous function closure (`param => body` or `(p1, p2) => body`).
+    Lambda {
+        /// Bound parameter names.
+        params: Vec<String>,
+        /// Closure body expression.
+        body: Box<Expr>,
+        /// Source code span of the lambda expression.
+        span: Span,
+    },
+
     /// String interpolation containing text and evaluated sub-expressions.
     StringInterpolation {
         /// Sequence of static text fragments and interpolated expressions.
@@ -94,6 +142,11 @@ impl Expr {
             Self::Call { span, .. } => *span,
             Self::Pipe { span, .. } => *span,
             Self::MemberAccess { span, .. } => *span,
+            Self::Index { span, .. } => *span,
+            Self::List { span, .. } => *span,
+            Self::Range { span, .. } => *span,
+            Self::NamedArg { span, .. } => *span,
+            Self::Lambda { span, .. } => *span,
             Self::StringInterpolation { span, .. } => *span,
         }
     }

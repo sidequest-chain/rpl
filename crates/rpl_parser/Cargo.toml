@@ -1,0 +1,12 @@
+[package]
+name = "rpl_parser"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Recursive descent and Pratt parser for the RPL programming language"
+
+[dependencies]
+thiserror = "2"
+rpl_ast = { path = "../rpl_ast" }
+rpl_lexer = { path = "../rpl_lexer" }

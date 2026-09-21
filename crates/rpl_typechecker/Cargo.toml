@@ -1,0 +1,11 @@
+[package]
+name = "rpl_typechecker"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+thiserror = "2"
+rpl_ast = { path = "../rpl_ast" }
+rpl_parser = { path = "../rpl_parser" }
