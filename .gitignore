@@ -1,2 +1,137 @@
+# ==============================================================================
+# Rust & Cargo Build Artifacts
+# ==============================================================================
 /target/
+target/
 **/*.rs.bk
+*.profraw
+*.profdata
+cargo-timing*.html
+
+# Code Coverage & Testing Reports
+coverage/
+*.lcov
+tarpaulin-report.html
+cobertura.xml
+
+# ==============================================================================
+# C99 Transpiler & Native Build Artifacts (rpl_codegen_c / C toolchain)
+# ==============================================================================
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.pdb
+*.ilk
+*.exp
+*.gch
+*.dSYM/
+
+# ==============================================================================
+# Agent & Commit Temporary Files
+# ==============================================================================
+# Agent workflow temporary commit message files (AGENTS.md execution standard)
+commit_msg.txt
+scratch/
+
+# Generic Temporary and Backup Files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.#*
+
+# ==============================================================================
+# Environment Variables, Secrets & Credentials (NEVER COMMIT)
+# ==============================================================================
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Private Keys & Certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+
+# Credentials & Tokens
+credentials.json
+secrets.json
+token.txt
+secret.txt
+*.secret
+
+# ==============================================================================
+# IDEs & Editor Configuration
+# ==============================================================================
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# JetBrains (CLion, RustRover, IDEA, etc.)
+.idea/
+*.iml
+
+# Zed
+.zed/
+
+# Autonomous Agents & AI IDE Metadata
+.agents/
+.gemini/
+.claude/
+.cursor/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# Operating System Artifacts
+# ==============================================================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+.directory
+
+# ==============================================================================
+# Logs & Core Dumps
+# ==============================================================================
+*.log
+core
+*.stackdump
