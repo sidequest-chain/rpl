@@ -23,7 +23,20 @@ RPL (Running Pseudo Language) is a compiled, zero-garbage-collector systems prog
 
 1. **No Structural Curly Braces `{}`:** Blocks, composite types, match cases, and loops are delimited exclusively by `:` and `end`. Curly braces must not be used for scopes, map literals, or format blocks.
 2. **No Statement Semicolons `;`:** Statements are terminated strictly by newlines (`\n`).
-3. **No Whitespace-Sensitive Scoping (Anti-Python):** While 4-space indentation is standard for visual clarity, block termination is governed solely by the `end` keyword. Indentation variance must never alter execution semantics.
+3. **No Whitespace-Sensitive Scoping (Anti-Python):** While 4-space indentation is standard for visual clarity, block termination is governed solely by the `end` keyword. Indentation variance (irregular spacing, tabs, or complete absence of indentation) must never alter execution semantics:
+   ```rpl
+   // Irregularly indented:
+   fn process:
+          step_one()
+          step_two()
+   end
+
+   // Zero indentation (completely valid syntax):
+   fn process:
+   step_one()
+   step_two()
+   end
+   ```
 4. **Zero Java-Style Ceremony:** No classes, no inheritance hierarchies, and no `public static void main`. Execution starts at the module top level or inside an explicit entry function.
 5. **String Interpolation Syntax:** Variables inside string literals are interpolated using `$identifier` or `$(expression)`.
 

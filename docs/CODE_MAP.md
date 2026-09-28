@@ -151,6 +151,7 @@ When reading or modifying RPL compiler code, keep these invariants strictly inta
 | :--- | :--- |
 | **No `{}` or `;`** | Curly braces `{}` and semicolons `;` are strictly prohibited in RPL grammar and must never be accepted by the lexer or parser. |
 | **Block Delimiters** | Blocks start with `:` and close exclusively with `end` (`Token::End`). |
+| **Indentation-Agnostic** | Scoping is governed solely by `:` and `end`. Indentation (spaces, tabs, or zero indent) is purely stylistic and ignored by the compiler. |
 | **Newlines as Terminators** | `\n` acts as a statement terminator at depth 0, but is ignored inside parentheses `(...)` and brackets `[...]`. |
 | **Trit 3-State Logic** | `Trit` has 3 states: `true`, `false`, `unknown`. Pattern matches over `Trit` MUST be exhaustive. |
 | **String Interpolation** | Strictly recognizes `$var` and `$(expr)`. |

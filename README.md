@@ -11,6 +11,7 @@
 ## Language Highlights
 
 * **Executable Clarity:** Reads like clean algorithmic pseudocode. No curly braces `{}` and no statement semicolons `;`. Scopes open with `:` and close exclusively with `end`.
+* **Indentation-Agnostic (Anti-Python):** Indentation has zero semantic significance. Scoping is strictly bounded by `:` and `end`, meaning 4 spaces, irregular tabs, or zero indentation parse identically.
 * **Zero Garbage Collection:** Deterministic memory release bound to lexical scopes and compile-time ownership transfer (*move semantics*).
 * **First-Class Ternary Logic (`Trit`):** Native language and type system support for Kleene 3-valued logic (`true`, `false`, `unknown`) with enforced pattern exhaustiveness.
 * **Modern Syntax:** Clean pipe operator (`|>`), native string interpolation (`$var` and `$(expr)`), and expression-oriented design.
@@ -38,6 +39,24 @@ fn main():
     end
 
     println("System diagnostic: $report")
+end
+```
+
+#### Indentation Freedom
+
+Because block scoping is strictly bounded by `:` and `end`, indentation is purely stylistic:
+
+```rpl
+// Standard readable indentation:
+fn calculate(x: Int) -> Int:
+    let temp = x * 2
+    return temp + 1
+end
+
+// Zero indentation (fully valid and parses identically):
+fn calculate(x: Int) -> Int:
+let temp = x * 2
+return temp + 1
 end
 ```
 
