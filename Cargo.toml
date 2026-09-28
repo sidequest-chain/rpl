@@ -11,5 +11,5 @@ members = [
 version = "0.1.0"
 edition = "2021"
 authors = ["RPL Team"]
-license = "MIT OR Apache-2.0"
+license = "EUPL-1.2"
 
