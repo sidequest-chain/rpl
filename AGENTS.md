@@ -19,7 +19,7 @@ This document establishes operational boundaries, engineering standards, and exe
 
 3. **Language Rules:**
    * All code comments, function documentation (docstrings), parser errors, and diagnostic output must be in **English**.
-   * Conversational dialogue with the user remains in **Estonian** unless explicitly directed otherwise.
+   * Conversational dialogue must match the user's language (mirror user prompt language: e.g., respond in Estonian when addressed in Estonian, English when addressed in English).
 
 ---
 
