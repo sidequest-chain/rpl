@@ -76,7 +76,7 @@ To balance rapid cross-platform deployment (Windows & Linux) with ultimate devel
     - `rpl run <file.rpl>`: Executes immediately via in-memory Cranelift JIT by default.
     - `rpl run --via-c <file.rpl>`: Explicit opt-in to portable C99 compilation pipeline.
     - `rpl check <file.rpl>`: Runs fast frontend validation with ternary status indicators (`[+ + ?]`).
-    - Standardized version identification (`rpl 0.2+2 "Tohtlane"` with host target triple and active backends).
+    - Standardized version identification (`rpl 0.2+3 "Tohtlane"` with host target triple and active backends).
 * **Test Verification:**
   - Complete workspace test suite passing (73 unit/integration tests).
   - Clean Clippy analysis across all crates.

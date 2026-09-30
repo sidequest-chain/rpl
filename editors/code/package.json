@@ -2,7 +2,7 @@
   "name": "rpl-vscode",
   "displayName": "Running Pseudo Language (RPL)",
   "description": "Rich language support and Language Server Protocol (LSP) integration for RPL",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "publisher": "rpl-lang",
   "engines": {
     "vscode": "^1.75.0"
@@ -47,8 +47,5 @@
         }
       }
     }
-  },
-  "dependencies": {
-    "vscode-languageclient": "^9.0.1"
   }
 }

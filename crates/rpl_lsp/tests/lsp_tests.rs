@@ -1,5 +1,8 @@
-use rpl_lsp::{compute_diagnostics, get_hover_for_word, get_word_at_position};
-use tower_lsp::lsp_types::{DiagnosticSeverity, Position};
+use rpl_lsp::{
+    compute_diagnostics, compute_semantic_tokens, get_hover_for_word, get_word_at_position,
+    SUPPORTED_TOKEN_TYPES,
+};
+use tower_lsp::lsp_types::{DiagnosticSeverity, Position, SemanticTokenType};
 
 #[test]
 fn test_clean_program_has_no_diagnostics() {
@@ -124,4 +127,40 @@ end
     let hover_type = get_hover_for_word("Sensor", source);
     assert!(hover_type.is_some());
     assert!(hover_type.unwrap().contains("type Sensor:"));
+}
+
+#[test]
+fn test_compute_semantic_tokens() {
+    let source = r#"
+type Reaktor:
+    id: String
+end
+
+// Kleene turvakontroll
+fn kontroll(t: Trit) -> Trit:
+    return t and true
+end
+"#;
+
+    let tokens = compute_semantic_tokens(source);
+    assert!(!tokens.is_empty(), "Tokens must not be empty");
+
+    // Check legend has the standard types
+    assert_eq!(SUPPORTED_TOKEN_TYPES[0], SemanticTokenType::KEYWORD);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[1], SemanticTokenType::TYPE);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[2], SemanticTokenType::FUNCTION);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[3], SemanticTokenType::VARIABLE);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[6], SemanticTokenType::OPERATOR);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[7], SemanticTokenType::COMMENT);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[8], SemanticTokenType::ENUM_MEMBER);
+
+    // Verify token types are within bounds
+    for tok in &tokens {
+        assert!(
+            (tok.token_type as usize) < SUPPORTED_TOKEN_TYPES.len(),
+            "Token type index {} must be within legend bounds",
+            tok.token_type
+        );
+        assert!(tok.length > 0, "Token length must be positive");
+    }
 }

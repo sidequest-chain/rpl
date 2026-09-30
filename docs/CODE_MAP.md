@@ -173,7 +173,7 @@
 - **Key Modules & Files:**
   - `src/lib.rs`: `tower-lsp` LanguageServer implementation, `compute_diagnostics` (syntax and Kleene ternary type checking), and hover documentation.
   - `tests/lsp_tests.rs`: Comprehensive test suite verifying diagnostic generation (`[- - -]` syntax and `[+ - -]` type errors), clean document reporting, and hover tooltips.
-- **Editor Extensions & Setup:** See [IDE_SETUP.md](IDE_SETUP.md) and `editors/code/`.
+- **Editor Extensions & Setup:** See [IDE_SETUP.md](IDE_SETUP.md), `editors/code/` (VS Code / Antigravity IDE), and `editors/zed/` (native Zed extension).
 
 ---
 

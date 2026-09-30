@@ -1,0 +1,22 @@
+id = "rpl"
+name = "RPL"
+version = "0.2.3"
+schema_version = 1
+description = "Running Pseudo Language (RPL) support for Zed"
+repository = "https://github.com/rpl-lang/rpl"
+authors = ["RPL Team"]
+themes = []
+icon_themes = []
+languages = ["languages/rpl"]
+capabilities = []
+
+[lib]
+kind = "Rust"
+version = "0.7.0"
+
+[language_servers.rpl]
+languages = ["RPL"]
+
+[context_servers]
+
+[slash_commands]

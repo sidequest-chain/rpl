@@ -184,6 +184,280 @@ pub fn get_hover_for_word(word: &str, source: &str) -> Option<String> {
     Some(doc.to_string())
 }
 
+/// Supported Semantic Token Types advertised to LSP clients (Zed, VS Code, Helix, Neovim).
+pub const SUPPORTED_TOKEN_TYPES: &[SemanticTokenType] = &[
+    SemanticTokenType::KEYWORD,     // 0
+    SemanticTokenType::TYPE,        // 1
+    SemanticTokenType::FUNCTION,    // 2
+    SemanticTokenType::VARIABLE,    // 3
+    SemanticTokenType::STRING,      // 4
+    SemanticTokenType::NUMBER,      // 5
+    SemanticTokenType::OPERATOR,    // 6
+    SemanticTokenType::COMMENT,     // 7
+    SemanticTokenType::ENUM_MEMBER, // 8
+    SemanticTokenType::PROPERTY,    // 9
+];
+
+#[derive(Debug, Clone)]
+struct RawSemanticToken {
+    line: u32,
+    col: u32,
+    length: u32,
+    token_type: u32,
+}
+
+fn classify_token(
+    tok: &rpl_lexer::Token,
+    user_types: &std::collections::HashSet<String>,
+    user_fns: &std::collections::HashSet<String>,
+) -> Option<u32> {
+    match tok {
+        // Keywords
+        rpl_lexer::Token::Fn
+        | rpl_lexer::Token::End
+        | rpl_lexer::Token::Type
+        | rpl_lexer::Token::Let
+        | rpl_lexer::Token::Mut
+        | rpl_lexer::Token::Match
+        | rpl_lexer::Token::Case
+        | rpl_lexer::Token::Spawn
+        | rpl_lexer::Token::Return
+        | rpl_lexer::Token::If
+        | rpl_lexer::Token::Else
+        | rpl_lexer::Token::For
+        | rpl_lexer::Token::In
+        | rpl_lexer::Token::While
+        | rpl_lexer::Token::Break
+        | rpl_lexer::Token::Continue
+        | rpl_lexer::Token::As
+        | rpl_lexer::Token::Channel
+        | rpl_lexer::Token::Const
+        | rpl_lexer::Token::Is
+        | rpl_lexer::Token::Parallel
+        | rpl_lexer::Token::Yield => Some(0), // KEYWORD
+
+        // Trit logic literals
+        rpl_lexer::Token::True
+        | rpl_lexer::Token::False
+        | rpl_lexer::Token::Unknown => Some(8), // ENUM_MEMBER
+
+        // Numbers
+        rpl_lexer::Token::Int(_)
+        | rpl_lexer::Token::HexInt(_)
+        | rpl_lexer::Token::BinaryInt(_)
+        | rpl_lexer::Token::Float(_) => Some(5), // NUMBER
+
+        // Strings
+        rpl_lexer::Token::String(_) => Some(4), // STRING
+        rpl_lexer::Token::DollarIdent(_) => Some(3), // VARIABLE
+
+        // Operators
+        rpl_lexer::Token::Plus
+        | rpl_lexer::Token::Minus
+        | rpl_lexer::Token::Star
+        | rpl_lexer::Token::Slash
+        | rpl_lexer::Token::Percent
+        | rpl_lexer::Token::EqEq
+        | rpl_lexer::Token::NotEq
+        | rpl_lexer::Token::Lt
+        | rpl_lexer::Token::LtEq
+        | rpl_lexer::Token::Gt
+        | rpl_lexer::Token::GtEq
+        | rpl_lexer::Token::Ampersand
+        | rpl_lexer::Token::Pipe
+        | rpl_lexer::Token::Caret
+        | rpl_lexer::Token::Tilde
+        | rpl_lexer::Token::Shl
+        | rpl_lexer::Token::Shr
+        | rpl_lexer::Token::PipeRight
+        | rpl_lexer::Token::Arrow
+        | rpl_lexer::Token::FatArrow
+        | rpl_lexer::Token::Assign
+        | rpl_lexer::Token::DotDot
+        | rpl_lexer::Token::And
+        | rpl_lexer::Token::Or
+        | rpl_lexer::Token::Not => Some(6), // OPERATOR
+
+        // Identifiers
+        rpl_lexer::Token::Ident(name) => match name.as_str() {
+            "Trit" | "Int" | "Float" | "String" | "Bool" | "Byte" => Some(1), // TYPE
+            "print" | "println" => Some(2),                                   // FUNCTION
+            _ if user_types.contains(name) => Some(1),                        // TYPE
+            _ if user_fns.contains(name) => Some(2),                          // FUNCTION
+            _ => Some(3),                                                     // VARIABLE
+        },
+
+        _ => None,
+    }
+}
+
+fn extract_comments(source: &str) -> Vec<RawSemanticToken> {
+    let mut comments = Vec::new();
+    let lines: Vec<&str> = source.lines().collect();
+    let mut in_block = false;
+
+    for (line_idx, line) in lines.iter().enumerate() {
+        let line_u32 = line_idx as u32;
+        let bytes = line.as_bytes();
+        let mut idx = 0;
+
+        while idx < bytes.len() {
+            if in_block {
+                if idx + 1 < bytes.len() && bytes[idx] == b'*' && bytes[idx + 1] == b'/' {
+                    let len = (idx + 2) as u32;
+                    comments.push(RawSemanticToken {
+                        line: line_u32,
+                        col: 0,
+                        length: len,
+                        token_type: 7, // COMMENT
+                    });
+                    in_block = false;
+                    idx += 2;
+                } else {
+                    idx += 1;
+                }
+            } else if idx + 1 < bytes.len() && bytes[idx] == b'/' {
+                if bytes[idx + 1] == b'/' {
+                    let col = idx as u32;
+                    let len = (bytes.len() - idx) as u32;
+                    comments.push(RawSemanticToken {
+                        line: line_u32,
+                        col,
+                        length: len,
+                        token_type: 7, // COMMENT
+                    });
+                    break;
+                } else if bytes[idx + 1] == b'*' {
+                    let start_col = idx as u32;
+                    idx += 2;
+                    let mut closed_on_same_line = false;
+                    while idx + 1 < bytes.len() {
+                        if bytes[idx] == b'*' && bytes[idx + 1] == b'/' {
+                            let len = (idx + 2 - (start_col as usize)) as u32;
+                            comments.push(RawSemanticToken {
+                                line: line_u32,
+                                col: start_col,
+                                length: len,
+                                token_type: 7, // COMMENT
+                            });
+                            closed_on_same_line = true;
+                            idx += 2;
+                            break;
+                        }
+                        idx += 1;
+                    }
+                    if !closed_on_same_line {
+                        let len = (bytes.len() - (start_col as usize)) as u32;
+                        comments.push(RawSemanticToken {
+                            line: line_u32,
+                            col: start_col,
+                            length: len,
+                            token_type: 7, // COMMENT
+                        });
+                        in_block = true;
+                        break;
+                    }
+                } else {
+                    idx += 1;
+                }
+            } else {
+                idx += 1;
+            }
+        }
+
+        if in_block && !comments.iter().any(|c| c.line == line_u32) {
+            comments.push(RawSemanticToken {
+                line: line_u32,
+                col: 0,
+                length: bytes.len() as u32,
+                token_type: 7, // COMMENT
+            });
+        }
+    }
+
+    comments
+}
+
+/// Computes semantic tokens for an RPL source document.
+///
+/// Encodes token delta coordinates in accordance with the LSP 3.17 specification:
+/// `[delta_line, delta_start_col, length, token_type, token_modifiers]`.
+pub fn compute_semantic_tokens(source: &str) -> Vec<SemanticToken> {
+    let mut raw_tokens = extract_comments(source);
+
+    let mut user_types = std::collections::HashSet::new();
+    let mut user_fns = std::collections::HashSet::new();
+    if let Ok(prog) = rpl_parser::parse_program(source) {
+        for stmt in &prog.statements {
+            match stmt {
+                rpl_ast::Stmt::TypeDecl { name, .. } => {
+                    user_types.insert(name.clone());
+                }
+                rpl_ast::Stmt::FnDecl { name, .. } => {
+                    user_fns.insert(name.clone());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let lexer = rpl_lexer::RplLexer::new(source).with_bracketed_newline_filtering(false);
+    for (tok, span) in lexer.flatten() {
+        if let Some(token_type) = classify_token(&tok, &user_types, &user_fns) {
+            let line = span.start_line.saturating_sub(1) as u32;
+            let col = span.start_col.saturating_sub(1) as u32;
+            let length = if span.start_line == span.end_line {
+                span.end_col.saturating_sub(span.start_col) as u32
+            } else {
+                let first_line_len = source
+                    .lines()
+                    .nth(line as usize)
+                    .map(|l| l.len())
+                    .unwrap_or(0);
+                first_line_len.saturating_sub(col as usize) as u32
+            };
+
+            if length > 0 {
+                raw_tokens.push(RawSemanticToken {
+                    line,
+                    col,
+                    length,
+                    token_type,
+                });
+            }
+        }
+    }
+
+    raw_tokens.sort_by(|a, b| a.line.cmp(&b.line).then_with(|| a.col.cmp(&b.col)));
+    raw_tokens.dedup_by(|a, b| a.line == b.line && a.col == b.col);
+
+    let mut semantic_tokens = Vec::with_capacity(raw_tokens.len());
+    let mut prev_line = 0;
+    let mut prev_col = 0;
+
+    for tok in raw_tokens {
+        let delta_line = tok.line.saturating_sub(prev_line);
+        let delta_start = if delta_line == 0 {
+            tok.col.saturating_sub(prev_col)
+        } else {
+            tok.col
+        };
+
+        semantic_tokens.push(SemanticToken {
+            delta_line,
+            delta_start,
+            length: tok.length,
+            token_type: tok.token_type,
+            token_modifiers_bitset: 0,
+        });
+
+        prev_line = tok.line;
+        prev_col = tok.col;
+    }
+
+    semantic_tokens
+}
+
 /// The RPL Language Server state and backend.
 pub struct Backend {
     client: Client,
@@ -217,7 +491,7 @@ impl LanguageServer for Backend {
                     include_str!("../../../VERSION")
                         .split_whitespace()
                         .next()
-                        .unwrap_or("0.2+2")
+                        .unwrap_or("0.2+3")
                         .to_string(),
                 ),
             }),
@@ -226,6 +500,19 @@ impl LanguageServer for Backend {
                     TextDocumentSyncKind::FULL,
                 )),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
+                semantic_tokens_provider: Some(
+                    SemanticTokensServerCapabilities::SemanticTokensOptions(
+                        SemanticTokensOptions {
+                            work_done_progress_options: WorkDoneProgressOptions::default(),
+                            legend: SemanticTokensLegend {
+                                token_types: SUPPORTED_TOKEN_TYPES.to_vec(),
+                                token_modifiers: vec![],
+                            },
+                            range: None,
+                            full: Some(SemanticTokensFullOptions::Bool(true)),
+                        },
+                    ),
+                ),
                 ..Default::default()
             },
         })
@@ -300,6 +587,28 @@ impl LanguageServer for Backend {
                     }));
                 }
             }
+        }
+
+        Ok(None)
+    }
+
+    async fn semantic_tokens_full(
+        &self,
+        params: SemanticTokensParams,
+    ) -> Result<Option<SemanticTokensResult>> {
+        let uri = params.text_document.uri;
+        let doc_content = self
+            .documents
+            .read()
+            .ok()
+            .and_then(|docs| docs.get(&uri).cloned());
+
+        if let Some(content) = doc_content {
+            let tokens = compute_semantic_tokens(&content);
+            return Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
+                result_id: None,
+                data: tokens,
+            })));
         }
 
         Ok(None)

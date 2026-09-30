@@ -11,7 +11,7 @@ Ensure the `rpl` compiler executable is installed and accessible in your system 
 ```powershell
 # Verify installation
 rpl --version
-# Output: rpl 0.2+2 "Tohtlane" ...
+# Output: rpl 0.2+3 "Tohtlane" ...
 ```
 
 The language server is built directly into the `rpl` binary and invoked via:
@@ -23,47 +23,22 @@ rpl lsp
 
 ## 2. Zed Editor Setup
 
-Zed supports custom Language Servers natively via its settings file.
+RPL provides a native Zed extension in `editors/zed/` compiled to WebAssembly (`wasm32-wasip1`) that registers the `RPL` language and attaches the `rpl lsp` language server.
 
-### Step 1: Open Zed Settings
-Open Zed and press `Ctrl+,` (or `Cmd+,` on macOS), or edit your configuration directly:
-- **Windows:** `%APPDATA%\Zed\settings.json`
-- **Linux / macOS:** `~/.config/zed/settings.json`
+### Option A: Install via Command Palette (Recommended for Development)
+1. Open **Zed**.
+2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) to open the Command Palette.
+3. Type and select: **`zed: install dev extension`**.
+4. In the folder picker dialog, select the repository's `editors/zed` directory:
+   ```text
+   D:\Dev\rpl\editors\zed
+   ```
+5. Zed immediately activates language recognition for `.rpl` files, sets up brackets and comments, and connects to `rpl lsp`.
 
-### Step 2: Add Language Server Configuration
-Add the following configuration to your `settings.json`:
-
-```json
-{
-  "languages": {
-    "RPL": {
-      "language_servers": ["rpl-lsp"]
-    }
-  },
-  "lsp": {
-    "rpl-lsp": {
-      "binary": {
-        "path": "rpl",
-        "arguments": ["lsp"]
-      }
-    }
-  }
-}
-```
-
-If `rpl` is not in your system PATH, specify the absolute path to the binary:
-```json
-{
-  "lsp": {
-    "rpl-lsp": {
-      "binary": {
-        "path": "C:\\Program Files\\RunningPseudoLanguage\\rpl.exe",
-        "arguments": ["lsp"]
-      }
-    }
-  }
-}
-```
+### Option B: Automatic Installation Directory
+Alternatively, copy the compiled extension into Zed's installed extensions directory:
+- **Windows:** `%LOCALAPPDATA%\Zed\extensions\installed\rpl`
+- **Linux / macOS:** `~/.local/share/zed/extensions/installed/rpl`
 
 ---
 
@@ -71,18 +46,10 @@ If `rpl` is not in your system PATH, specify the absolute path to the binary:
 
 The RPL repository includes an extension in `editors/code/` providing:
 1. **TextMate Syntax Highlighting:** Keywords (`fn`, `match`, `type`, `let`, `mut`), Ternary logic types (`Trit`, `true`, `false`, `unknown`), and string interpolation (`$var`, `$(expr)`).
-2. **Language Configuration:** Automatic bracket pairing and indentation after `:` and outdent on `end`.
-3. **LSP Client:** Spawns `rpl lsp` in the background and delivers real-time error markers.
+2. **Language Configuration:** Automatic bracket pairing, comment toggling (`//`, `/* */`), and scope indentation.
+3. **Self-Contained LSP Client:** Zero external npm dependencies. Communicates directly with `rpl lsp` via stdio JSON-RPC.
 
-### Step 1: Install Extension Dependencies
-Open a terminal in the extension folder and install client dependencies:
-
-```powershell
-cd editors/code
-npm install
-```
-
-### Step 2: Link Extension into Editor
+### Installation Steps
 
 Link or copy the `editors/code` folder into your editor's extension directory:
 

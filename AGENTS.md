@@ -166,7 +166,7 @@ All agents and contributors must strictly enforce the following versioning disci
 1. **Format:** `MAJOR.MINOR[+PATCH] "Codename"` (e.g., base `0.2 "Tohtlane"`, or refined variant `0.2+1 "Tohtlane"`).
    - `MAJOR.MINOR`: Architectural generation and feature milestone. Initial milestone releases may appear in clean base form (e.g., `0.2 "Tohtlane"` without unnecessary `+0` noise).
    - `+PATCH`: Monotonic patch counter (`+1`, `+2`, `+3`, ... `+x`) designating substantive bug fixes, maintenance adjustments, or refined iterations within the given `MINOR` milestone. It strictly does not represent test suite counts.
-   - **Current active version:** `0.2+2 "Tohtlane"` (the verified second refined patch variant of Phase 2, with built-in LSP).
+   - **Current active version:** `0.2+3 "Tohtlane"` (the verified third refined patch variant of Phase 2, with native Zed & VS Code semantic tokens & zero-dependency LSP).
    - `"Codename"`: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (1866).
    - **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` designates build/patch metadata per SemVer 2.0, not a ternary truth value.
 

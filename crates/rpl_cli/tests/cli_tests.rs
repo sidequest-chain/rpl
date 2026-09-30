@@ -151,7 +151,7 @@ fn test_cli_version() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains("rpl 0.2+2 \"Tohtlane\""),
+        stdout.contains("rpl 0.2+3 \"Tohtlane\""),
         "stdout was: {}",
         stdout
     );

@@ -1,0 +1,12 @@
+[package]
+name = "rpl-zed"
+version = "0.2.3"
+edition = "2021"
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.7.0"
