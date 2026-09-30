@@ -139,6 +139,41 @@ rpl/
 
 ---
 
+## Installation / Pre-built Binaries
+
+Pre-compiled, standalone binaries for **Windows (x64)** and **Linux (x64 musl)** are published with every official release on the [GitHub Releases](https://github.com/sidequest-chain/rpl/releases) page. You do not need a Rust toolchain installed to use these pre-built packages.
+
+### Windows Installation
+1. Download the latest `rpl-v*-windows-x64.zip` from GitHub Releases.
+2. Extract the archive to your preferred folder (e.g., `C:\Tools\rpl`).
+3. Add the extracted directory to your system `PATH` environment variable.
+
+### Linux Installation
+1. Download the latest `rpl-v*-linux-x64.tar.gz` from GitHub Releases.
+2. Extract the archive:
+   ```bash
+   tar -xzf rpl-v*-linux-x64.tar.gz
+   ```
+3. Move the standalone `rpl` binary into your system `PATH`:
+   ```bash
+   sudo mv rpl-*/rpl /usr/local/bin/
+   # Or for local user installation:
+   mv rpl-*/rpl ~/.local/bin/
+   ```
+
+### Quick Verification
+Once installed, verify the compiler and execute the included sample:
+
+```bash
+# 1. Verify installed version and active backends:
+rpl --version
+
+# 2. Run the reactor telemetry diagnostic program in-memory via Cranelift JIT:
+rpl run examples/reaktor.rpl
+```
+
+---
+
 ## Building and Testing
 
 Prerequisites: A modern Rust toolchain (Rust 2021 edition).
