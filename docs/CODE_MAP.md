@@ -14,6 +14,7 @@
    - [2.5 rpl_codegen_c (Phase 1 C99 Transpiler Backend)](#25-rpl_codegen_c)
    - [2.6 rpl_cli (CLI Interface)](#26-rpl_cli)
    - [2.7 rpl_codegen_cranelift (Phase 2 Cranelift JIT)](#27-rpl_codegen_cranelift)
+   - [2.8 rpl_lsp (Language Server Protocol)](#28-rpl_lsp)
 3. [Language Invariants & Grammar Rules](#3-language-invariants--grammar-rules)
 4. [Frequent Development Paths (Extension Cheatsheet)](#4-frequent-development-paths)
 5. [Verification Commands](#5-verification-commands)
@@ -163,6 +164,16 @@
   - `src/error.rs`: `CodegenCraneliftError` definitions via `thiserror`.
   - `tests/jit_tests.rs`: Unit and integration test suite verifying JIT arithmetic, Kleene ternary logic truth tables, struct access, loops, and `examples/reaktor.rpl`.
 - **Architecture & Roadmap:** See [ROADMAP.md](ROADMAP.md) for phased execution strategy and self-hosting bootstrap milestones.
+
+---
+
+### 2.8 `rpl_lsp`
+- **Location:** `crates/rpl_lsp/`
+- **Status:** ✅ **Complete** — Language Server Protocol (LSP) daemon powering IDE tooling (`rpl lsp`) across Zed, VS Code, and Antigravity IDE.
+- **Key Modules & Files:**
+  - `src/lib.rs`: `tower-lsp` LanguageServer implementation, `compute_diagnostics` (syntax and Kleene ternary type checking), and hover documentation.
+  - `tests/lsp_tests.rs`: Comprehensive test suite verifying diagnostic generation (`[- - -]` syntax and `[+ - -]` type errors), clean document reporting, and hover tooltips.
+- **Editor Extensions & Setup:** See [IDE_SETUP.md](IDE_SETUP.md) and `editors/code/`.
 
 ---
 

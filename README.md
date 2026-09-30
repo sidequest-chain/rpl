@@ -1,13 +1,13 @@
 # RPL (Running Pseudo Language)
 
-[![Version: 0.2+1 "Tohtlane"](https://img.shields.io/badge/version-0.2%2B1_%22Tohtlane%22-blue.svg)]()
+[![Version: 0.2+2 "Tohtlane"](https://img.shields.io/badge/version-0.2%2B2_%22Tohtlane%22-blue.svg)]()
 [![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL_1.2-blue.svg)](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)
-[![Build Status](https://img.shields.io/badge/tests-67%20passed-brightgreen.svg)]()
+[![Build Status](https://img.shields.io/badge/tests-73%20passed-brightgreen.svg)]()
 [![Language: Rust](https://img.shields.io/badge/rust-2021%20edition-orange.svg)]()
 
 > **Running Pseudo Language (RPL)** is a compiled, zero-garbage-collector systems programming language designed to eliminate the translation boundary between conceptual pseudocode and high-performance native execution.
 >
-> **Current Official Release:** `0.2+1 "Tohtlane"` (Target: host native with in-memory Cranelift JIT & C99 backends).
+> **Current Official Release:** `0.2+2 "Tohtlane"` (Target: host native with in-memory Cranelift JIT & C99 backends).
 
 ---
 
@@ -73,7 +73,7 @@ RPL enforces a strict release and diagnostic identity across all tooling and com
 ```text
 MAJOR.MINOR[+PATCH] "Codename"
 ```
-* **Current Version:** `0.2+1 "Tohtlane"`
+* **Current Version:** `0.2+2 "Tohtlane"`
 * **`MAJOR.MINOR`:** Architectural capability and subsystem milestone (`0.1` C99 transpiler, `0.2` in-memory Cranelift JIT). Base releases may appear without `+0`.
 * **`+PATCH`:** Monotonic patch counter (`+1`, `+2`, ... `+x`) designating substantive fixes, maintenance updates, or refined iterations within the active milestone.
 * **`"Codename"`:** Mythological creatures from Friedrich Reinhold Kreutzwald's Estonian folk heritage (*Eesti rahva ennemuistsed jutud*, 1866):
@@ -232,6 +232,7 @@ cargo clippy --workspace -- -D warnings
 * **[ROADMAP.md](docs/ROADMAP.md):** Architectural evolution roadmap, hybrid execution model (C99 + Cranelift JIT), and self-hosting strategy.
 * **[LANGUAGE_GUIDE.md](docs/LANGUAGE_GUIDE.md):** Practical language guide and tutorial covering syntax, `Trit` logic, collections, and examples.
 * **[PROJECT_SPEC.md](docs/PROJECT_SPEC.md):** Complete technical specification, formal grammar, type system semantics, and language examples.
+* **[IDE_SETUP.md](docs/IDE_SETUP.md):** Editor setup guide for Zed, Antigravity IDE, and VS Code using the built-in RPL Language Server (`rpl lsp`).
 * **[CODE_MAP.md](docs/CODE_MAP.md):** Detailed module index, types registry, invariant cheat sheet, and extension guidelines for LLM agents and contributors.
 * **[AGENTS.md](AGENTS.md):** Operating rules and the Tiered Commit System (Lite NWBW & Full HIDC) required for autonomous agents.
 

@@ -1,0 +1,54 @@
+{
+  "name": "rpl-vscode",
+  "displayName": "Running Pseudo Language (RPL)",
+  "description": "Rich language support and Language Server Protocol (LSP) integration for RPL",
+  "version": "0.2.1",
+  "publisher": "rpl-lang",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./client/extension.js",
+  "activationEvents": [
+    "onLanguage:rpl"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "rpl",
+        "aliases": [
+          "RPL",
+          "Running Pseudo Language",
+          "rpl"
+        ],
+        "extensions": [
+          ".rpl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "rpl",
+        "scopeName": "source.rpl",
+        "path": "./syntaxes/rpl.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "RPL Configuration",
+      "properties": {
+        "rpl.serverPath": {
+          "type": "string",
+          "default": "rpl",
+          "description": "Path to the rpl binary executable (defaults to 'rpl' in system PATH)"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

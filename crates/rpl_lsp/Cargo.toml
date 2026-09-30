@@ -1,0 +1,16 @@
+[package]
+name = "rpl_lsp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Language Server Protocol (LSP) implementation for Running Pseudo Language (RPL)"
+
+[dependencies]
+rpl_ast = { path = "../rpl_ast" }
+rpl_lexer = { path = "../rpl_lexer" }
+rpl_parser = { path = "../rpl_parser" }
+rpl_typechecker = { path = "../rpl_typechecker" }
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["full"] }
+serde_json = "1.0"

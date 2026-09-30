@@ -10,9 +10,9 @@ use rpl_codegen_c::generate_c;
 use rpl_parser::parse_program;
 use rpl_typechecker::check_program;
 
-const RPL_RELEASE: &str = "0.2+1 \"Tohtlane\"";
+const RPL_RELEASE: &str = "0.2+2 \"Tohtlane\"";
 const VERSION_STRING: &str = concat!(
-    "0.2+1 \"Tohtlane\"\nTarget: ",
+    "0.2+2 \"Tohtlane\"\nTarget: ",
     env!("RPL_TARGET"),
     " (backends: cranelift-jit, c99-zig)"
 );
@@ -61,6 +61,9 @@ enum Commands {
         #[arg(long)]
         via_c: bool,
     },
+
+    /// Start the RPL Language Server Protocol (LSP) daemon
+    Lsp,
 }
 
 #[derive(Debug, Clone)]
@@ -166,10 +169,16 @@ fn check_rpl_source(file_path: &Path) -> Result<rpl_ast::Program, String> {
     Ok(program)
 }
 
-fn main() -> ExitCode {
+#[tokio::main]
+async fn main() -> ExitCode {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::Lsp => {
+            rpl_lsp::run_server().await;
+            ExitCode::SUCCESS
+        }
+
         Commands::Check { file } => {
             if !file.exists() {
                 eprintln!("Error: Source file does not exist: {}", file.display());

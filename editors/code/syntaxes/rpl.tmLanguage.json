@@ -1,0 +1,150 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "RPL",
+  "scopeName": "source.rpl",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#function_calls"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.rpl",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.line.number-sign.rpl",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.rpl",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.rpl",
+          "match": "\\\\[nrt\"'\\\\]"
+        },
+        {
+          "name": "variable.interpolation.rpl",
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*"
+        },
+        {
+          "name": "meta.embedded.expression.rpl",
+          "begin": "\\$\\([ \t]*",
+          "end": "[ \t]*\\)",
+          "patterns": [
+            {
+              "include": "$self"
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.rpl",
+          "match": "\\b(if|else|match|case|for|while|parallel|in|return|spawn)\\b"
+        },
+        {
+          "name": "keyword.declaration.rpl",
+          "match": "\\b(fn|type|let|mut|end)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "entity.name.type.rpl",
+          "match": "\\b(Int|Int64|Float|String|Bool|Trit|Byte)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.trit.rpl",
+          "match": "\\b(true|false|unknown)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.rpl",
+          "match": "\\b[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.rpl",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.logical.rpl",
+          "match": "\\b(and|or|not)\\b"
+        },
+        {
+          "name": "keyword.operator.pipe.rpl",
+          "match": "\\|>"
+        },
+        {
+          "name": "keyword.operator.arrow.rpl",
+          "match": "->"
+        },
+        {
+          "name": "keyword.operator.comparison.rpl",
+          "match": "(==|!=|<=|>=|<|>)"
+        },
+        {
+          "name": "keyword.operator.assignment.rpl",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.rpl",
+          "match": "(\\+|-|\\*|/|%)"
+        }
+      ]
+    },
+    "function_calls": {
+      "patterns": [
+        {
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.rpl"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -151,7 +151,7 @@ fn test_cli_version() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains("rpl 0.2+1 \"Tohtlane\""),
+        stdout.contains("rpl 0.2+2 \"Tohtlane\""),
         "stdout was: {}",
         stdout
     );
@@ -166,3 +166,22 @@ fn test_cli_version() {
         stdout
     );
 }
+
+#[test]
+fn test_cli_lsp_help() {
+    let rpl_bin = get_rpl_bin();
+
+    let output = Command::new(&rpl_bin)
+        .args(["lsp", "--help"])
+        .output()
+        .expect("Failed to run rpl lsp --help");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("Start the RPL Language Server Protocol (LSP) daemon"),
+        "stdout was: {}",
+        stdout
+    );
+}
+

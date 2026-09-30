@@ -19,3 +19,6 @@ rpl_parser = { path = "../rpl_parser" }
 rpl_typechecker = { path = "../rpl_typechecker" }
 rpl_codegen_c = { path = "../rpl_codegen_c" }
 rpl_codegen_cranelift = { path = "../rpl_codegen_cranelift" }
+rpl_lsp = { path = "../rpl_lsp" }
+tokio = { version = "1", features = ["full"] }
+
