@@ -148,11 +148,12 @@ end
     // Check legend has the standard types
     assert_eq!(SUPPORTED_TOKEN_TYPES[0], SemanticTokenType::KEYWORD);
     assert_eq!(SUPPORTED_TOKEN_TYPES[1], SemanticTokenType::TYPE);
-    assert_eq!(SUPPORTED_TOKEN_TYPES[2], SemanticTokenType::FUNCTION);
-    assert_eq!(SUPPORTED_TOKEN_TYPES[3], SemanticTokenType::VARIABLE);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[2], SemanticTokenType::VARIABLE);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[3], SemanticTokenType::FUNCTION);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[4], SemanticTokenType::STRING);
+    assert_eq!(SUPPORTED_TOKEN_TYPES[5], SemanticTokenType::NUMBER);
     assert_eq!(SUPPORTED_TOKEN_TYPES[6], SemanticTokenType::OPERATOR);
     assert_eq!(SUPPORTED_TOKEN_TYPES[7], SemanticTokenType::COMMENT);
-    assert_eq!(SUPPORTED_TOKEN_TYPES[8], SemanticTokenType::ENUM_MEMBER);
 
     // Verify token types are within bounds
     for tok in &tokens {

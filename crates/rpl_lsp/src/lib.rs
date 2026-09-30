@@ -3,13 +3,9 @@
 //! Provides real-time syntax checking, Kleene ternary logic type diagnostics,
 //! and hover documentation for IDE integrations (VS Code, Antigravity IDE, Zed).
 
-use std::collections::HashMap;
-use std::sync::RwLock;
-
 use rpl_ast::Span;
-use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
-use tower_lsp::{Client, LanguageServer, LspService, Server};
+use tower_lsp::{LspService, Server};
 
 /// Converts an RPL 1-indexed `Span` into a 0-indexed LSP `Range`.
 pub fn span_to_range(span: &Span) -> Range {
@@ -185,17 +181,25 @@ pub fn get_hover_for_word(word: &str, source: &str) -> Option<String> {
 }
 
 /// Supported Semantic Token Types advertised to LSP clients (Zed, VS Code, Helix, Neovim).
+///
+/// Order conforms strictly to LSP 3.17 legend:
+/// - 0: `keyword` (fn, end, let, mut, if, else, match, for, in, return, spawn, type)
+/// - 1: `type` (Int, Int64, Float, String, Bool, Trit, Byte, custom record types)
+/// - 2: `variable` (variable names, dollar identifiers)
+/// - 3: `function` (function names)
+/// - 4: `string` (text literals)
+/// - 5: `number` (numeric literals)
+/// - 6: `operator` (trit literals +, -, ?, arithmetic and comparison ops)
+/// - 7: `comment` (// and /* */)
 pub const SUPPORTED_TOKEN_TYPES: &[SemanticTokenType] = &[
-    SemanticTokenType::KEYWORD,     // 0
-    SemanticTokenType::TYPE,        // 1
-    SemanticTokenType::FUNCTION,    // 2
-    SemanticTokenType::VARIABLE,    // 3
-    SemanticTokenType::STRING,      // 4
-    SemanticTokenType::NUMBER,      // 5
-    SemanticTokenType::OPERATOR,    // 6
-    SemanticTokenType::COMMENT,     // 7
-    SemanticTokenType::ENUM_MEMBER, // 8
-    SemanticTokenType::PROPERTY,    // 9
+    SemanticTokenType::KEYWORD,  // 0
+    SemanticTokenType::TYPE,     // 1
+    SemanticTokenType::VARIABLE, // 2
+    SemanticTokenType::FUNCTION, // 3
+    SemanticTokenType::STRING,   // 4
+    SemanticTokenType::NUMBER,   // 5
+    SemanticTokenType::OPERATOR, // 6
+    SemanticTokenType::COMMENT,  // 7
 ];
 
 #[derive(Debug, Clone)]
@@ -212,7 +216,7 @@ fn classify_token(
     user_fns: &std::collections::HashSet<String>,
 ) -> Option<u32> {
     match tok {
-        // Keywords
+        // 0: keyword (fn, end, let, mut, if, else, match, for, in, return, spawn, type, etc.)
         rpl_lexer::Token::Fn
         | rpl_lexer::Token::End
         | rpl_lexer::Token::Type
@@ -236,23 +240,20 @@ fn classify_token(
         | rpl_lexer::Token::Parallel
         | rpl_lexer::Token::Yield => Some(0), // KEYWORD
 
-        // Trit logic literals
-        rpl_lexer::Token::True
-        | rpl_lexer::Token::False
-        | rpl_lexer::Token::Unknown => Some(8), // ENUM_MEMBER
+        // 4: string (text literals)
+        rpl_lexer::Token::String(_) => Some(4), // STRING
 
-        // Numbers
+        // 5: number (numeric literals)
         rpl_lexer::Token::Int(_)
         | rpl_lexer::Token::HexInt(_)
         | rpl_lexer::Token::BinaryInt(_)
         | rpl_lexer::Token::Float(_) => Some(5), // NUMBER
 
-        // Strings
-        rpl_lexer::Token::String(_) => Some(4), // STRING
-        rpl_lexer::Token::DollarIdent(_) => Some(3), // VARIABLE
-
-        // Operators
-        rpl_lexer::Token::Plus
+        // 6: operator (trit literals +, -, ?, arithmetic and comparison ops)
+        rpl_lexer::Token::True
+        | rpl_lexer::Token::False
+        | rpl_lexer::Token::Unknown
+        | rpl_lexer::Token::Plus
         | rpl_lexer::Token::Minus
         | rpl_lexer::Token::Star
         | rpl_lexer::Token::Slash
@@ -278,13 +279,16 @@ fn classify_token(
         | rpl_lexer::Token::Or
         | rpl_lexer::Token::Not => Some(6), // OPERATOR
 
+        // 2: variable (dollar identifier string interpolation)
+        rpl_lexer::Token::DollarIdent(_) => Some(2), // VARIABLE
+
         // Identifiers
         rpl_lexer::Token::Ident(name) => match name.as_str() {
-            "Trit" | "Int" | "Float" | "String" | "Bool" | "Byte" => Some(1), // TYPE
-            "print" | "println" => Some(2),                                   // FUNCTION
+            "Trit" | "Int" | "Int64" | "Float" | "String" | "Bool" | "Byte" => Some(1), // TYPE
+            "print" | "println" => Some(3),                                   // FUNCTION
             _ if user_types.contains(name) => Some(1),                        // TYPE
-            _ if user_fns.contains(name) => Some(2),                          // FUNCTION
-            _ => Some(3),                                                     // VARIABLE
+            _ if user_fns.contains(name) => Some(3),                          // FUNCTION
+            _ => Some(2),                                                     // VARIABLE
         },
 
         _ => None,
@@ -458,162 +462,8 @@ pub fn compute_semantic_tokens(source: &str) -> Vec<SemanticToken> {
     semantic_tokens
 }
 
-/// The RPL Language Server state and backend.
-pub struct Backend {
-    client: Client,
-    documents: RwLock<HashMap<Url, String>>,
-}
-
-impl Backend {
-    /// Creates a new `Backend` instance bound to the provided LSP client.
-    pub fn new(client: Client) -> Self {
-        Self {
-            client,
-            documents: RwLock::new(HashMap::new()),
-        }
-    }
-
-    async fn validate_document(&self, uri: Url, text: &str) {
-        let diagnostics = compute_diagnostics(text);
-        self.client
-            .publish_diagnostics(uri, diagnostics, None)
-            .await;
-    }
-}
-
-#[tower_lsp::async_trait]
-impl LanguageServer for Backend {
-    async fn initialize(&self, _: InitializeParams) -> Result<InitializeResult> {
-        Ok(InitializeResult {
-            server_info: Some(ServerInfo {
-                name: "rpl-lsp".to_string(),
-                version: Some(
-                    include_str!("../../../VERSION")
-                        .split_whitespace()
-                        .next()
-                        .unwrap_or("0.2+3")
-                        .to_string(),
-                ),
-            }),
-            capabilities: ServerCapabilities {
-                text_document_sync: Some(TextDocumentSyncCapability::Kind(
-                    TextDocumentSyncKind::FULL,
-                )),
-                hover_provider: Some(HoverProviderCapability::Simple(true)),
-                semantic_tokens_provider: Some(
-                    SemanticTokensServerCapabilities::SemanticTokensOptions(
-                        SemanticTokensOptions {
-                            work_done_progress_options: WorkDoneProgressOptions::default(),
-                            legend: SemanticTokensLegend {
-                                token_types: SUPPORTED_TOKEN_TYPES.to_vec(),
-                                token_modifiers: vec![],
-                            },
-                            range: None,
-                            full: Some(SemanticTokensFullOptions::Bool(true)),
-                        },
-                    ),
-                ),
-                ..Default::default()
-            },
-        })
-    }
-
-    async fn initialized(&self, _: InitializedParams) {
-        self.client
-            .log_message(MessageType::INFO, "RPL Language Server initialized.")
-            .await;
-    }
-
-    async fn shutdown(&self) -> Result<()> {
-        Ok(())
-    }
-
-    async fn did_open(&self, params: DidOpenTextDocumentParams) {
-        let uri = params.text_document.uri;
-        let text = params.text_document.text;
-
-        if let Ok(mut docs) = self.documents.write() {
-            docs.insert(uri.clone(), text.clone());
-        }
-
-        self.validate_document(uri, &text).await;
-    }
-
-    async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
-        let uri = params.text_document.uri;
-        if let Some(change) = params.content_changes.pop() {
-            let text = change.text;
-
-            if let Ok(mut docs) = self.documents.write() {
-                docs.insert(uri.clone(), text.clone());
-            }
-
-            self.validate_document(uri, &text).await;
-        }
-    }
-
-    async fn did_save(&self, params: DidSaveTextDocumentParams) {
-        let uri = params.text_document.uri;
-        let text = self
-            .documents
-            .read()
-            .ok()
-            .and_then(|docs| docs.get(&uri).cloned());
-
-        if let Some(content) = text {
-            self.validate_document(uri, &content).await;
-        }
-    }
-
-    async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
-        let uri = params.text_document_position_params.text_document.uri;
-        let pos = params.text_document_position_params.position;
-
-        let doc_content = self
-            .documents
-            .read()
-            .ok()
-            .and_then(|docs| docs.get(&uri).cloned());
-
-        if let Some(content) = doc_content {
-            if let Some(word) = get_word_at_position(&content, pos) {
-                if let Some(doc) = get_hover_for_word(&word, &content) {
-                    return Ok(Some(Hover {
-                        contents: HoverContents::Markup(MarkupContent {
-                            kind: MarkupKind::Markdown,
-                            value: doc,
-                        }),
-                        range: None,
-                    }));
-                }
-            }
-        }
-
-        Ok(None)
-    }
-
-    async fn semantic_tokens_full(
-        &self,
-        params: SemanticTokensParams,
-    ) -> Result<Option<SemanticTokensResult>> {
-        let uri = params.text_document.uri;
-        let doc_content = self
-            .documents
-            .read()
-            .ok()
-            .and_then(|docs| docs.get(&uri).cloned());
-
-        if let Some(content) = doc_content {
-            let tokens = compute_semantic_tokens(&content);
-            return Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
-                result_id: None,
-                data: tokens,
-            })));
-        }
-
-        Ok(None)
-    }
-}
+pub mod backend;
+pub use backend::Backend;
 
 /// Runs the RPL Language Server over standard input and standard output.
 pub async fn run_server() {

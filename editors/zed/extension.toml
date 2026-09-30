@@ -2,17 +2,16 @@ id = "rpl"
 name = "RPL"
 version = "0.2.3"
 schema_version = 1
-description = "Running Pseudo Language (RPL) support for Zed"
-repository = "https://github.com/rpl-lang/rpl"
-authors = ["RPL Team"]
+authors = ["Martin Strutinski"]
+description = "Running Pseudo Language support for Zed"
+repository = "https://github.com/sidequest-chain/rpl"
 themes = []
 icon_themes = []
 languages = ["languages/rpl"]
 capabilities = []
 
-[lib]
-
 [language_servers.rpl]
+name = "rpl"
 languages = ["RPL"]
 
 [context_servers]
