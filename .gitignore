@@ -39,6 +39,7 @@ cobertura.xml
 # Agent workflow temporary commit message files (AGENTS.md execution standard)
 commit_msg.txt
 scratch/
+tools/
 
 # Generic Temporary and Backup Files
 *.tmp
