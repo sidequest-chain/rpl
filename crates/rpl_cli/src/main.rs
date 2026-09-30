@@ -10,8 +10,9 @@ use rpl_codegen_c::generate_c;
 use rpl_parser::parse_program;
 use rpl_typechecker::check_program;
 
+const RPL_RELEASE: &str = "0.2+1 \"Tohtlane\"";
 const VERSION_STRING: &str = concat!(
-    "0.2+66 \"Tohtlane\"\nTarget: ",
+    "0.2+1 \"Tohtlane\"\nTarget: ",
     env!("RPL_TARGET"),
     " (backends: cranelift-jit, c99-zig)"
 );
@@ -227,7 +228,7 @@ fn main() -> ExitCode {
                 }
                 let elapsed = build_start.elapsed().as_secs_f64();
                 println!(
-                    "[+ + +] rpl 0.2+66 \"Tohtlane\": built '{}' ({:.3}s)",
+                    "[+ + +] rpl {RPL_RELEASE}: built '{}' ({:.3}s)",
                     target_c_path.display(),
                     elapsed
                 );
@@ -261,7 +262,7 @@ fn main() -> ExitCode {
                 Ok(_) => {
                     let elapsed = build_start.elapsed().as_secs_f64();
                     println!(
-                        "[+ + +] rpl 0.2+66 \"Tohtlane\": built '{}' ({:.3}s)",
+                        "[+ + +] rpl {RPL_RELEASE}: built '{}' ({:.3}s)",
                         target_exe_path.display(),
                         elapsed
                     );

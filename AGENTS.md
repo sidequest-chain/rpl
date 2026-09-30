@@ -163,11 +163,12 @@ rm commit_msg.txt
 ## 6. Versioning Policy & Release Identity
 All agents and contributors must strictly enforce the following versioning discipline:
 
-1. **Format:** `MAJOR.MINOR+PATCH "Codename"` (e.g., `0.2+66 "Tohtlane"`).
-   - `MAJOR.MINOR`: Architectural generation and feature milestone.
-   - `+PATCH`: Monotonic build/patch/test count metadata (SemVer 2.0 build metadata compatible).
+1. **Format:** `MAJOR.MINOR[+PATCH] "Codename"` (e.g., base `0.2 "Tohtlane"`, or refined variant `0.2+1 "Tohtlane"`).
+   - `MAJOR.MINOR`: Architectural generation and feature milestone. Initial milestone releases may appear in clean base form (e.g., `0.2 "Tohtlane"` without unnecessary `+0` noise).
+   - `+PATCH`: Monotonic patch counter (`+1`, `+2`, `+3`, ... `+x`) designating substantive bug fixes, maintenance adjustments, or refined iterations within the given `MINOR` milestone. It strictly does not represent test suite counts.
+   - **Current active version:** `0.2+1 "Tohtlane"` (the verified first refined patch variant of Phase 2).
    - `"Codename"`: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (1866).
-   - **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`).
+   - **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` designates build/patch metadata per SemVer 2.0, not a ternary truth value.
 
 2. **Major Version Discipline:**
    - The version series remains `0.x` until full self-hosting (`rpl-in-rpl`) is achieved at `1.0 "Põhja Konn"`.

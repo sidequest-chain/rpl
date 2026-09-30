@@ -1,6 +1,6 @@
 # RPL (Running Pseudo Language) — Technical Specification and Language Design
 
-Version: 0.2+66 "Tohtlane"  
+Version: 0.2+1 "Tohtlane"  
 File Extension: `.rpl`  
 CLI Tooling: `rpl` (`rpl run`, `rpl build`, `rpl check`)  
 Target Audience: Compiler engineering, LLM code generation, formal syntax verification, systems runtime.
@@ -405,20 +405,21 @@ RPL adheres to a strict, deterministic release and version identification policy
 ### 9.1 Version String Format
 The official toolchain versioning follows the schema:
 ```text
-MAJOR.MINOR+PATCH "Codename"
+MAJOR.MINOR[+PATCH] "Codename"
 ```
-Example:
+Examples:
 ```text
-0.2+66 "Tohtlane"
+0.2 "Tohtlane"      (Initial base milestone release)
+0.2+1 "Tohtlane"    (First refined patch iteration)
 ```
-* **`MAJOR.MINOR`**: Architectural generation and feature milestone (e.g., C99 transpiler backend `0.1`, Cranelift JIT engine `0.2`).
-* **`+PATCH`**: Monotonic build/patch/test count metadata (SemVer 2.0 build metadata compatible, e.g., `+66`).
+* **`MAJOR.MINOR`**: Architectural generation and feature milestone (e.g., C99 transpiler backend `0.1`, Cranelift JIT engine `0.2`). Initial base releases may appear in clean base form without `+0`.
+* **`+PATCH`**: Monotonic patch counter (`+1`, `+2`, ... `+x`) for substantive bug fixes, maintenance adjustments, and refined iterations within the given `MINOR` milestone. It strictly does not represent test suite counts.
 * **`"Codename"`**: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (*Eesti rahva ennemuistsed jutud*, 1866).
 * **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` denotes build metadata per SemVer 2.0, not a ternary truth value.
 
 CLI invocation (`rpl --version`) produces the structured identifier alongside the active host target triple and supported backends:
 ```text
-rpl 0.2+66 "Tohtlane"
+rpl 0.2+1 "Tohtlane"
 Target: <target-triple> (backends: cranelift-jit, c99-zig)
 ```
 
