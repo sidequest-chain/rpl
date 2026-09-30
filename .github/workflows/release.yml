@@ -4,12 +4,13 @@ on:
   push:
     tags:
       - 'v*'
+      - '[0-9]+.*'
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release tag name (e.g. v0.2+1)'
+        description: 'Release tag name (e.g. 0.2+1 or v0.2+1)'
         required: false
-        default: 'v0.2+1'
+        default: ''
 
 permissions:
   contents: write
@@ -34,13 +35,13 @@ jobs:
         id: release_info
         shell: bash
         run: |
+          CODE_VER=$(grep "const RPL_RELEASE" crates/rpl_cli/src/main.rs | cut -d '"' -f 2 | cut -d ' ' -f 1)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag_name }}" ]; then
             TAG="${{ inputs.tag_name }}"
           elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG="${{ github.ref_name }}"
           else
-            CODE_VER=$(grep "const RPL_RELEASE" crates/rpl_cli/src/main.rs | cut -d '"' -f 2 | cut -d ' ' -f 1)
-            TAG="v${CODE_VER:-0.2+1}"
+            TAG="${CODE_VER:-0.2+1}"
           fi
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           if [ "${{ matrix.os }}" = "windows-latest" ]; then

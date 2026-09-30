@@ -425,9 +425,18 @@ RPL provides a unified, cross-platform CLI tool named `rpl`:
 By default, `rpl run` compiles and executes code directly in memory using the native Cranelift JIT engine without emitting intermediate files:
 
 ```bash
-# Execute instantly via in-memory Cranelift JIT:
+# Execute instantly via in-memory Cranelift JIT (from repository root or with rpl in PATH):
 rpl run examples/reaktor.rpl
 ```
+
+* **PowerShell / Windows Terminal (local folder execution):**
+  ```powershell
+  .\rpl.exe run .\reaktor.rpl
+  ```
+* **Linux / macOS (local folder execution):**
+  ```bash
+  ./rpl run reaktor.rpl
+  ```
 
 To compile and run via the portable C99 pipeline:
 ```bash

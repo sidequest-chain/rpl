@@ -199,3 +199,14 @@ All agents and contributors must strictly enforce the following versioning disci
      - `[+ + ?]`: Check passed without codegen.
      - `[+ - -]`: Typecheck failure.
      - `[- - -]`: Lexer/Parser syntax failure.
+
+6. **Proactive Tag & Release Notification Protocol:**
+   - Autonomous agents must actively assist the developer by signaling when an official Git tag and release should be created.
+   - **Trigger Conditions for Tag Prompts:**
+     - **Substantive Bug Fixes (`fix`):** Whenever a verified fix to the compiler, parser, typechecker, or codegen backends is committed, the agent must propose incrementing the monotonic patch counter (`0.2+1` → `0.2+2`), synchronize documentation, and proactively prompt the user with the tag command (e.g., `"We have completed and verified a substantive fix. Should we create and push the official release tag: git tag 0.2+2 && git push origin 0.2+2 ?"`).
+     - **Milestone Features (`feat` / Phase Completion in `ROADMAP.md`):** Whenever a major milestone or phase is completed, the agent must propose advancing the minor milestone codename (e.g., `0.3 "Kratt"`), update version references, and explicitly prompt the user for the official release tag.
+   - **Tag Formats Supported:**
+     - Primary standard: Clean format without `v` (e.g. `0.2+1`, `0.2+2`, `0.3`).
+     - Backwards compatibility: Legacy format with `v` (e.g. `v0.2+1`) remains supported by GitHub Actions.
+
+

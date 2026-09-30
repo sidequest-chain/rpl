@@ -145,8 +145,12 @@ Pre-compiled, standalone binaries for **Windows (x64)** and **Linux (x64 musl)**
 
 ### Windows Installation
 1. Download the latest `rpl-v*-windows-x64.zip` from GitHub Releases.
-2. Extract the archive to your preferred folder (e.g., `C:\Tools\rpl`).
-3. Add the extracted directory to your system `PATH` environment variable.
+2. Extract the archive to your preferred folder (e.g., `C:\Tools\rpl` or inside your Documents folder).
+3. (Optional) Add the extracted directory to your user `PATH` environment variable so you can run `rpl` from any folder:
+   ```powershell
+   # In PowerShell 7 or Windows PowerShell (run once):
+   [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Tools\rpl", "User")
+   ```
 
 ### Linux Installation
 1. Download the latest `rpl-v*-linux-x64.tar.gz` from GitHub Releases.
@@ -161,16 +165,48 @@ Pre-compiled, standalone binaries for **Windows (x64)** and **Linux (x64 musl)**
    mv rpl-*/rpl ~/.local/bin/
    ```
 
-### Quick Verification
-Once installed, verify the compiler and execute the included sample:
+### Quick Verification & Shell Specifics
 
-```bash
-# 1. Verify installed version and active backends:
-rpl --version
+Pre-built release packages include the standalone executable (`rpl.exe` or `rpl`), documentation, and the sample `reaktor.rpl` directly in the root of the extracted folder.
 
-# 2. Run the reactor telemetry diagnostic program in-memory via Cranelift JIT:
-rpl run examples/reaktor.rpl
-```
+Depending on your operating system and shell, invoke the executable as follows:
+
+#### Windows Terminal / PowerShell (PowerShell 7.x & Windows PowerShell 5.1)
+> [!NOTE]
+> PowerShell intentionally does not load executables from the current working directory without an explicit path prefix (`.\`).
+
+* **Inside the extracted folder (without PATH setup):**
+  ```powershell
+  # 1. Check version:
+  .\rpl.exe --version
+
+  # 2. Run the included telemetry sample in-memory via Cranelift JIT:
+  .\rpl.exe run .\reaktor.rpl
+  ```
+* **With `rpl` added to system PATH or cloned repository root:**
+  ```powershell
+  rpl --version
+  rpl run examples/reaktor.rpl
+  ```
+
+#### Windows Command Prompt (`cmd.exe`)
+* **Inside the extracted folder:**
+  ```cmd
+  rpl.exe --version
+  rpl.exe run reaktor.rpl
+  ```
+
+#### Linux / macOS (Bash & Zsh)
+* **Inside the extracted folder (before moving to `/usr/local/bin`):**
+  ```bash
+  ./rpl --version
+  ./rpl run reaktor.rpl
+  ```
+* **Once installed in PATH (`/usr/local/bin`):**
+  ```bash
+  rpl --version
+  rpl run reaktor.rpl
+  ```
 
 ---
 
