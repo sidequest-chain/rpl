@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag name (e.g. v0.2+1)'
+        required: false
+        default: 'v0.2+1'
 
 permissions:
   contents: write
@@ -14,19 +19,37 @@ jobs:
     name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact_name: rpl-${{ github.ref_name }}-windows-x64.zip
-            pkg_dir: rpl-${{ github.ref_name }}-windows-x64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            artifact_name: rpl-${{ github.ref_name }}-linux-x64.tar.gz
-            pkg_dir: rpl-${{ github.ref_name }}-linux-x64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Determine release tag and artifact names
+        id: release_info
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag_name }}" ]; then
+            TAG="${{ inputs.tag_name }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            CODE_VER=$(grep "const RPL_RELEASE" crates/rpl_cli/src/main.rs | cut -d '"' -f 2 | cut -d ' ' -f 1)
+            TAG="v${CODE_VER:-0.2+1}"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            echo "pkg_dir=rpl-${TAG}-windows-x64" >> $GITHUB_OUTPUT
+            echo "artifact=rpl-${TAG}-windows-x64.zip" >> $GITHUB_OUTPUT
+          else
+            echo "pkg_dir=rpl-${TAG}-linux-x64" >> $GITHUB_OUTPUT
+            echo "artifact=rpl-${TAG}-linux-x64.tar.gz" >> $GITHUB_OUTPUT
+          fi
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -46,26 +69,31 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path "${{ matrix.pkg_dir }}"
-          Copy-Item -Path "target/${{ matrix.target }}/release/rpl.exe" -Destination "${{ matrix.pkg_dir }}/"
-          Copy-Item -Path "examples/reaktor.rpl" -Destination "${{ matrix.pkg_dir }}/"
-          Copy-Item -Path "README.md" -Destination "${{ matrix.pkg_dir }}/"
-          Copy-Item -Path "docs/LANGUAGE_GUIDE.md" -Destination "${{ matrix.pkg_dir }}/"
-          Compress-Archive -Path "${{ matrix.pkg_dir }}" -DestinationPath "${{ matrix.artifact_name }}"
+          $pkgDir = "${{ steps.release_info.outputs.pkg_dir }}"
+          $artifact = "${{ steps.release_info.outputs.artifact }}"
+          New-Item -ItemType Directory -Path $pkgDir -Force
+          Copy-Item -Path "target/${{ matrix.target }}/release/rpl.exe" -Destination "$pkgDir/"
+          Copy-Item -Path "examples/reaktor.rpl" -Destination "$pkgDir/"
+          Copy-Item -Path "README.md" -Destination "$pkgDir/"
+          Copy-Item -Path "docs/LANGUAGE_GUIDE.md" -Destination "$pkgDir/"
+          Compress-Archive -Path $pkgDir -DestinationPath $artifact -Force
 
       - name: Package release artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          mkdir -p "${{ matrix.pkg_dir }}"
-          cp "target/${{ matrix.target }}/release/rpl" "${{ matrix.pkg_dir }}/"
-          cp "examples/reaktor.rpl" "${{ matrix.pkg_dir }}/"
-          cp "README.md" "${{ matrix.pkg_dir }}/"
-          cp "docs/LANGUAGE_GUIDE.md" "${{ matrix.pkg_dir }}/"
-          tar -czvf "${{ matrix.artifact_name }}" "${{ matrix.pkg_dir }}"
+          PKG_DIR="${{ steps.release_info.outputs.pkg_dir }}"
+          ARTIFACT="${{ steps.release_info.outputs.artifact }}"
+          mkdir -p "$PKG_DIR"
+          cp "target/${{ matrix.target }}/release/rpl" "$PKG_DIR/"
+          cp "examples/reaktor.rpl" "$PKG_DIR/"
+          cp "README.md" "$PKG_DIR/"
+          cp "docs/LANGUAGE_GUIDE.md" "$PKG_DIR/"
+          tar -czvf "$ARTIFACT" "$PKG_DIR"
 
       - name: Publish Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ matrix.artifact_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: Release ${{ steps.release_info.outputs.tag }}
+          files: ${{ steps.release_info.outputs.artifact }}
           generate_release_notes: true
