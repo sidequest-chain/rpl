@@ -10,11 +10,17 @@ use rpl_codegen_c::generate_c;
 use rpl_parser::parse_program;
 use rpl_typechecker::check_program;
 
+const VERSION_STRING: &str = concat!(
+    "0.2+66 \"Tohtlane\"\nTarget: ",
+    env!("RPL_TARGET"),
+    " (backends: cranelift-jit, c99-zig)"
+);
+
 #[derive(Parser)]
 #[command(
     name = "rpl",
     author = "RPL Team",
-    version = "0.1.0",
+    version = VERSION_STRING,
     about = "Running Pseudo Language (RPL) compiler & driver",
     long_about = "Running Pseudo Language (RPL) is a compiled, zero-garbage-collector systems programming language."
 )]
@@ -45,10 +51,14 @@ enum Commands {
         emit_c: bool,
     },
 
-    /// Compile and run RPL program immediately
+    /// Compile and run RPL program immediately (default: in-memory Cranelift JIT)
     Run {
         /// Source file to execute (.rpl)
         file: PathBuf,
+
+        /// Execute via C99 compilation instead of in-memory Cranelift JIT
+        #[arg(long)]
+        via_c: bool,
     },
 }
 
@@ -142,10 +152,10 @@ fn check_rpl_source(file_path: &Path) -> Result<rpl_ast::Program, String> {
         .map_err(|e| format!("Cannot read source file '{}': {e}", file_path.display()))?;
 
     let program = parse_program(&source)
-        .map_err(|e| format!("Parser error in '{}':\n  {e}", file_path.display()))?;
+        .map_err(|e| format!("[- - -] Parser error in '{}':\n  {e}", file_path.display()))?;
 
     if let Err(errors) = check_program(&program) {
-        let mut msg = format!("Type errors in '{}':\n", file_path.display());
+        let mut msg = format!("[+ - -] Type errors in '{}':\n", file_path.display());
         for err in errors {
             msg.push_str(&format!("  - {err}\n"));
         }
@@ -167,7 +177,7 @@ fn main() -> ExitCode {
 
             match check_rpl_source(&file) {
                 Ok(_) => {
-                    println!("\x1b[32m✓ Check passed:\x1b[0m {}", file.display());
+                    println!("[+ + ?] Check passed: {}", file.display());
                     ExitCode::SUCCESS
                 }
                 Err(err) => {
@@ -187,6 +197,7 @@ fn main() -> ExitCode {
                 return ExitCode::FAILURE;
             }
 
+            let build_start = std::time::Instant::now();
             let program = match check_rpl_source(&file) {
                 Ok(p) => p,
                 Err(err) => {
@@ -214,9 +225,11 @@ fn main() -> ExitCode {
                     eprintln!("Failed to write C file '{}': {e}", target_c_path.display());
                     return ExitCode::FAILURE;
                 }
+                let elapsed = build_start.elapsed().as_secs_f64();
                 println!(
-                    "\x1b[32m✓ Generated C99 source:\x1b[0m {}",
-                    target_c_path.display()
+                    "[+ + +] rpl 0.2+66 \"Tohtlane\": built '{}' ({:.3}s)",
+                    target_c_path.display(),
+                    elapsed
                 );
                 return ExitCode::SUCCESS;
             }
@@ -246,9 +259,11 @@ fn main() -> ExitCode {
 
             match compile_res {
                 Ok(_) => {
+                    let elapsed = build_start.elapsed().as_secs_f64();
                     println!(
-                        "\x1b[32m✓ Compiled native binary:\x1b[0m {}",
-                        target_exe_path.display()
+                        "[+ + +] rpl 0.2+66 \"Tohtlane\": built '{}' ({:.3}s)",
+                        target_exe_path.display(),
+                        elapsed
                     );
                     ExitCode::SUCCESS
                 }
@@ -259,7 +274,7 @@ fn main() -> ExitCode {
             }
         }
 
-        Commands::Run { file } => {
+        Commands::Run { file, via_c } => {
             if !file.exists() {
                 eprintln!("Error: Source file does not exist: {}", file.display());
                 return ExitCode::FAILURE;
@@ -273,59 +288,77 @@ fn main() -> ExitCode {
                 }
             };
 
-            let c_code = match generate_c(&program) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Codegen error: {e}");
+            if via_c {
+                let c_code = match generate_c(&program) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Codegen error: {e}");
+                        return ExitCode::FAILURE;
+                    }
+                };
+
+                let host_compiler = match HostCCompiler::detect() {
+                    Some(c) => c,
+                    None => {
+                        eprintln!("Error: No supported C compiler (clang, gcc, zig cc, cc, cl.exe) found in PATH to execute program.");
+                        return ExitCode::FAILURE;
+                    }
+                };
+
+                let stem = file
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("run");
+
+                let ext = if cfg!(windows) { ".exe" } else { "" };
+                let pid = std::process::id();
+                let temp_c_path = std::env::temp_dir().join(format!("rpl_run_{stem}_{pid}.c"));
+                let temp_exe_path = std::env::temp_dir().join(format!("rpl_run_{stem}_{pid}{ext}"));
+
+                if let Err(e) = fs::write(&temp_c_path, &c_code) {
+                    eprintln!("Failed to write temporary C file: {e}");
                     return ExitCode::FAILURE;
                 }
-            };
 
-            let host_compiler = match HostCCompiler::detect() {
-                Some(c) => c,
-                None => {
-                    eprintln!("Error: No supported C compiler (clang, gcc, zig cc, cc, cl.exe) found in PATH to execute program.");
+                let compile_res = host_compiler.compile(&temp_c_path, &temp_exe_path);
+                let _ = fs::remove_file(&temp_c_path);
+
+                if let Err(err) = compile_res {
+                    eprintln!("{err}");
                     return ExitCode::FAILURE;
                 }
-            };
 
-            let stem = file
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("run");
+                let status = Command::new(&temp_exe_path).status();
+                let _ = fs::remove_file(&temp_exe_path);
 
-            let ext = if cfg!(windows) { ".exe" } else { "" };
-            let pid = std::process::id();
-            let temp_c_path = std::env::temp_dir().join(format!("rpl_run_{stem}_{pid}.c"));
-            let temp_exe_path = std::env::temp_dir().join(format!("rpl_run_{stem}_{pid}{ext}"));
-
-            if let Err(e) = fs::write(&temp_c_path, &c_code) {
-                eprintln!("Failed to write temporary C file: {e}");
-                return ExitCode::FAILURE;
-            }
-
-            let compile_res = host_compiler.compile(&temp_c_path, &temp_exe_path);
-            let _ = fs::remove_file(&temp_c_path);
-
-            if let Err(err) = compile_res {
-                eprintln!("{err}");
-                return ExitCode::FAILURE;
-            }
-
-            let status = Command::new(&temp_exe_path).status();
-            let _ = fs::remove_file(&temp_exe_path);
-
-            match status {
-                Ok(s) => {
-                    if s.success() {
-                        ExitCode::SUCCESS
-                    } else {
-                        ExitCode::from(s.code().unwrap_or(1) as u8)
+                match status {
+                    Ok(s) => {
+                        if s.success() {
+                            ExitCode::SUCCESS
+                        } else {
+                            ExitCode::from(s.code().unwrap_or(1) as u8)
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to execute compiled binary: {e}");
+                        ExitCode::FAILURE
                     }
                 }
-                Err(e) => {
-                    eprintln!("Failed to execute compiled binary: {e}");
-                    ExitCode::FAILURE
+            } else {
+                // In-memory JIT execution via Cranelift
+                println!("[+ + +] Running in-memory (Cranelift JIT) ...");
+                match rpl_codegen_cranelift::run_program(&program) {
+                    Ok(code) => {
+                        if code == 0 {
+                            ExitCode::SUCCESS
+                        } else {
+                            ExitCode::from((code & 0xFF) as u8)
+                        }
+                    }
+                    Err(err) => {
+                        eprintln!("JIT execution error: {err}");
+                        ExitCode::FAILURE
+                    }
                 }
             }
         }

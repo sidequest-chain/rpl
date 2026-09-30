@@ -138,3 +138,31 @@ end
 
     let _ = fs::remove_file(rpl_file);
 }
+
+#[test]
+fn test_cli_version() {
+    let rpl_bin = get_rpl_bin();
+
+    let output = Command::new(&rpl_bin)
+        .arg("--version")
+        .output()
+        .expect("Failed to run rpl --version");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("rpl 0.2+66 \"Tohtlane\""),
+        "stdout was: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("Target:"),
+        "stdout was: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("(backends: cranelift-jit, c99-zig)"),
+        "stdout was: {}",
+        stdout
+    );
+}

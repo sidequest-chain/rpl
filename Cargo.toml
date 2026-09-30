@@ -6,6 +6,7 @@ members = [
     "crates/rpl_parser",
     "crates/rpl_typechecker",
     "crates/rpl_codegen_c",
+    "crates/rpl_codegen_cranelift",
     "crates/rpl_cli",
 ]
 

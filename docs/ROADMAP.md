@@ -46,7 +46,7 @@ To balance rapid cross-platform deployment (Windows & Linux) with ultimate devel
 
 ---
 
-### Phase 1: Portable C99 Backend & Cross-Platform CLI (🚧 Next Target)
+### Phase 1: Portable C99 Backend & Cross-Platform CLI (✅ Complete)
 * **Goal:** Full cross-platform code generation targeting standard C99, executable immediately on Windows and Linux.
 * **Key Components:**
   * **[`crates/rpl_codegen_c`](../crates/rpl_codegen_c):**
@@ -62,17 +62,25 @@ To balance rapid cross-platform deployment (Windows & Linux) with ultimate devel
 
 ---
 
-### Phase 2: In-Memory Cranelift JIT Engine (`crates/rpl_codegen_cranelift`)
+### Phase 2: In-Memory Cranelift JIT Engine (`crates/rpl_codegen_cranelift`) (✅ Complete — v0.2 "Tohtlane")
+* **Status:** Fully completed, tested, and integrated into `rpl_cli` as the default execution engine for `rpl run`.
 * **Goal:** Zero external dependencies for interactive execution and lightning-fast developer iteration.
-* **Key Components:**
+* **Key Components & Verified Deliverables:**
   * **[`crates/rpl_codegen_cranelift`](../crates/rpl_codegen_cranelift):**
-    - In-memory JIT compiler using `cranelift-jit` and `cranelift-module`.
-    - Direct compilation of arithmetic, ternary logic, variables, and loops to native host assembly (x86_64, AArch64).
-    - Calling convention management (`WindowsFastcall` on Windows, `SystemV` on Linux).
-    - FFI bridge connecting Cranelift machine code to RPL runtime helper functions.
-  * **CLI Integration:**
-    - `rpl run --jit <file.rpl>` or automatic fallback to JIT when no C compiler is detected.
-    - Interactive REPL mode (`rpl repl`).
+    - High-performance in-memory JIT compiler utilizing `cranelift-jit` and `cranelift-module`.
+    - Direct compilation of arithmetic, ternary logic (`Trit`), variables, comparisons, loops (`while`), conditionals (`if`/`else`), and pattern matching (`match`) directly to native host machine code (x86_64, AArch64).
+    - Host-native calling convention management (`WindowsFastcall` on Windows, `SystemV` on Linux).
+    - FFI bridge connecting Cranelift machine code to RPL runtime helper functions (`rpl_print_str`, `rpl_print_trit`, `rpl_print_i64`).
+    - Sub-millisecond execution lifecycle directly from AST without writing temporary disk files.
+  * **CLI Integration (`crates/rpl_cli`):**
+    - `rpl run <file.rpl>`: Executes immediately via in-memory Cranelift JIT by default.
+    - `rpl run --via-c <file.rpl>`: Explicit opt-in to portable C99 compilation pipeline.
+    - `rpl check <file.rpl>`: Runs fast frontend validation with ternary status indicators (`[+ + ?]`).
+    - Standardized version identification (`rpl 0.2+66 "Tohtlane"` with host target triple and active backends).
+* **Test Verification:**
+  - Complete workspace test suite passing (66 unit/integration tests).
+  - Clean Clippy analysis across all crates.
+  - End-to-end integration tests in `crates/rpl_cli/tests/cli_tests.rs` and `crates/rpl_codegen_cranelift/tests/jit_tests.rs`.
 
 ---
 

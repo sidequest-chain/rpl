@@ -1,0 +1,18 @@
+[package]
+name = "rpl_codegen_cranelift"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+cranelift = "0.116"
+cranelift-jit = "0.116"
+cranelift-module = "0.116"
+cranelift-frontend = "0.116"
+cranelift-native = "0.116"
+target-lexicon = "0.13"
+thiserror = "2"
+rpl_ast = { path = "../rpl_ast" }
+rpl_parser = { path = "../rpl_parser" }
+rpl_typechecker = { path = "../rpl_typechecker" }

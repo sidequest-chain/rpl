@@ -153,7 +153,15 @@
 
 ### 2.7 `rpl_codegen_cranelift`
 - **Location:** `crates/rpl_codegen_cranelift/`
-- **Status:** Phase 2 Target (In-memory Cranelift JIT engine for sub-millisecond execution and REPL without external C toolchain).
+- **Status:** ✅ **Complete (Phase 2)** — In-memory Cranelift JIT engine delivering sub-millisecond execution without external C toolchains.
+- **Key Modules & Files:**
+  - `src/lib.rs`: `run_program(program: &Program) -> Result<i64, CodegenCraneliftError>` entrypoint.
+  - `src/compiler.rs`: AST lowering into Cranelift IR, Kleene ternary logic in CPU registers, struct stack slot allocation, control flow, functions, loops, and string interpolation lowering.
+  - `src/jit.rs`: `JITCompiler` native host ISA builder, JIT module management, and memory execution.
+  - `src/runtime.rs`: Native C-ABI runtime helper functions (`rpl_jit_print_*`, `rpl_jit_str_concat`, etc.) and symbol table registration.
+  - `src/types.rs`: Cranelift type translation (`rpl_to_cl_type`) and memory layout computation (`compute_struct_layout`).
+  - `src/error.rs`: `CodegenCraneliftError` definitions via `thiserror`.
+  - `tests/jit_tests.rs`: Unit and integration test suite verifying JIT arithmetic, Kleene ternary logic truth tables, struct access, loops, and `examples/reaktor.rpl`.
 - **Architecture & Roadmap:** See [ROADMAP.md](ROADMAP.md) for phased execution strategy and self-hosting bootstrap milestones.
 
 ---

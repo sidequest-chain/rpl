@@ -395,3 +395,71 @@ match parse_frame(raw_bytes):
         print "Frame decode failed: $err"
 end
 ```
+
+---
+
+## 9. Version Policy and Identification
+
+RPL adheres to a strict, deterministic release and version identification policy designed for reproducible compilation, cross-tooling interop, and folklore-grounded release semantics.
+
+### 9.1 Version String Format
+The official toolchain versioning follows the schema:
+```text
+MAJOR.MINOR+PATCH "Codename"
+```
+Example:
+```text
+0.2+66 "Tohtlane"
+```
+* **`MAJOR`**: Major evolutionary stage of the language.
+* **`MINOR`**: Substantial capability release or newly integrated architectural subsystem (e.g., C99 transpiler backend `0.1`, Cranelift JIT engine `0.2`).
+* **`PATCH`**: Workspace build/patch counter or test milestone metric (e.g., `+66`).
+* **`"Codename"`**: Official release creature moniker derived from Estonian folklore heritage.
+
+CLI invocation (`rpl --version`) produces the structured identifier alongside the active host target triple and supported backends:
+```text
+rpl 0.2+66 "Tohtlane"
+Target: <target-triple> (backends: cranelift-jit, c99-zig)
+```
+
+### 9.2 Major Version Discipline
+* The **`0.x`** version cycle remains in effect throughout pre-bootstrap development until the compiler achieves full self-hosting in native RPL (**v1.0 "Põhja Konn"**).
+* Following v1.0, the `MAJOR` version number advances **exclusively** upon fundamental language breakages or backward-incompatible syntactic shifts (such as alterations to core scoping invariants or lexical delimiters).
+* Feature enhancements, runtime optimizations, and new backends must advance `MINOR` and `PATCH` without perturbing the `MAJOR` boundary.
+
+### 9.3 Folklore Codenames
+RPL compiler releases adopt official codenames inspired by Friedrich Reinhold Kreutzwald's Estonian folklore collections, mythical beings, and enchanted creatures (*Eesti rahva ennemuistsed jutud*):
+
+| Version | Codename | Conceptual Significance |
+| :--- | :--- | :--- |
+| **0.1** | `"Puulane"` | Minimal wooden automaton; foundational portable C99 bootstrapping transpiler. |
+| **0.2** | `"Tohtlane"` | Birch-bark sprite; lightweight, zero-dependency in-memory Cranelift JIT execution engine. |
+| **0.3** | `"Kratt"` | Tireless domestic spirit; work-stealing concurrency runtime, thread scheduling, and channels. |
+| **0.4** | `"Tulihänd"` | Fiery dragon/treasure bearer; high-throughput memory optimizations and vectorization. |
+| **0.5** | `"Siil"` | The wise hedgehog advising Kalevipoeg to strike with the board edges; defensive verification, complete borrow/move checking, and exhaustive pattern coverage. |
+| **1.0** | `"Põhja Konn"` | The mythical dragon of the North; milestone self-hosting compiler (`rpl-in-rpl`) emitting native machine code. |
+
+### 9.4 Library Schema Lock (Immutability Rule)
+Third-party modules and standard library packages published for RPL may adopt either:
+1. A **3-part schema**: `MAJOR.MINOR.PATCH` (e.g., `1.4.0`)
+2. A **4-part schema**: `MAJOR.MINOR.PATCH.BUILD` (e.g., `1.4.0.12`)
+
+**The Immutability Rule:**
+Once a package or library registers its version schema upon initial release, that schema is permanently locked. Switching between 3-part and 4-part schemas within the same package lineage is strictly prohibited to guarantee deterministic package resolution, dependency graphs, and tooling compatibility across all RPL distributions.
+
+### 9.5 Ternary Compilation Status Indicators
+In alignment with RPL's first-class ternary logic philosophy (`true`, `false`, `unknown`), compiler diagnostics and stage feedback report status using a structured 3-element vector:
+```text
+[Syntax . Types . Code]
+```
+Each position reflects the verification state of that compilation phase:
+* `+` : Phase succeeded and verified.
+* `-` : Phase failed with errors.
+* `?` : Phase indeterminate, skipped, or not invoked (e.g., code generation omitted during verification).
+
+| Indicator | Phase Status | Description |
+| :---: | :---: | :--- |
+| `[+ + +]` | Full Success | Parsing verified, typechecking succeeded, and native machine code or binary was produced. |
+| `[+ + ?]` | Verification Only | Parsing and typechecking verified; code generation deliberately bypassed (`rpl check`). |
+| `[+ - -]` | Type Error | Source syntax parsed cleanly, but static type checking failed; code generation aborted. |
+| `[- - -]` | Syntax Error | Lexer or parser encountered a grammar violation; analysis halted at frontend. |

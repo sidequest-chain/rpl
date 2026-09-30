@@ -18,3 +18,4 @@ rpl_lexer = { path = "../rpl_lexer" }
 rpl_parser = { path = "../rpl_parser" }
 rpl_typechecker = { path = "../rpl_typechecker" }
 rpl_codegen_c = { path = "../rpl_codegen_c" }
+rpl_codegen_cranelift = { path = "../rpl_codegen_cranelift" }
