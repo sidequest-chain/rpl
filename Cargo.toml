@@ -5,6 +5,8 @@ members = [
     "crates/rpl_lexer",
     "crates/rpl_parser",
     "crates/rpl_typechecker",
+    "crates/rpl_codegen_c",
+    "crates/rpl_cli",
 ]
 
 [workspace.package]
@@ -12,4 +14,3 @@ version = "0.1.0"
 edition = "2021"
 authors = ["RPL Team"]
 license = "EUPL-1.2"
-

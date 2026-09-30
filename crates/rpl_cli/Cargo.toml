@@ -1,0 +1,20 @@
+[package]
+name = "rpl_cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Command-line interface driver for the RPL programming language"
+
+[[bin]]
+name = "rpl"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+anyhow = "1.0"
+rpl_ast = { path = "../rpl_ast" }
+rpl_lexer = { path = "../rpl_lexer" }
+rpl_parser = { path = "../rpl_parser" }
+rpl_typechecker = { path = "../rpl_typechecker" }
+rpl_codegen_c = { path = "../rpl_codegen_c" }

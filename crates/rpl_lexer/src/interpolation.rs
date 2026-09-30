@@ -70,6 +70,17 @@ pub fn split_interpolation(input: &str) -> Vec<InterpolationPart> {
                         if id_ch.is_alphanumeric() || id_ch == '_' {
                             ident_buf.push(id_ch);
                             chars.next();
+                        } else if id_ch == '.' {
+                            let mut clone_chars = chars.clone();
+                            clone_chars.next(); // skip '.'
+                            if let Some(&(_, after_dot)) = clone_chars.peek() {
+                                if after_dot.is_alphabetic() || after_dot == '_' {
+                                    ident_buf.push('.');
+                                    chars.next(); // consume '.'
+                                    continue;
+                                }
+                            }
+                            break;
                         } else {
                             break;
                         }

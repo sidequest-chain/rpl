@@ -34,7 +34,9 @@ The repository is structured as a modular Rust workspace:
 ├── LICENSE                 # European Union Public Licence (EUPL-1.2)
 ├── docs/
 │   ├── CODE_MAP.md         # Architectural index and module navigation for agents
-│   └── PROJECT_SPEC.md     # RPL language specification and grammar
+│   ├── LANGUAGE_GUIDE.md   # Practical language guide and tutorial for developers
+│   ├── PROJECT_SPEC.md     # RPL language specification and grammar
+│   └── ROADMAP.md          # Architectural evolution roadmap and hybrid execution model
 ├── Cargo.toml              # Root workspace manifest
 ├── crates/
 │   ├── rpl_lexer/          # Tokenization engine (.rpl source to token stream)

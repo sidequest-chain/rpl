@@ -43,6 +43,32 @@ pub enum ParserError {
         span: Span,
     },
 
+    /// A labeled `end <label>` does not match the active block.
+    #[error("Mismatched block end: expected closing for '{expected}' opened at {opened_at}, but found 'end {found}' at {span}")]
+    MismatchedBlockEnd {
+        /// Expected block label.
+        expected: String,
+        /// Label found after `end`.
+        found: String,
+        /// Span where the block was opened.
+        opened_at: Span,
+        /// Span of the mismatched label.
+        span: Span,
+    },
+
+    /// An unlabeled `end` at deep nesting level (>= 3) is ambiguous.
+    #[error("Ambiguous block end at depth {depth}: block '{expected}' opened at {opened_at} requires explicit label 'end {expected}' at {span}")]
+    AmbiguousBlockEnd {
+        /// Nesting depth.
+        depth: usize,
+        /// Expected block label.
+        expected: String,
+        /// Span where the block was opened.
+        opened_at: Span,
+        /// Span where unlabeled `end` was found.
+        span: Span,
+    },
+
     /// Lexical tokenization error encountered during parsing.
     #[error(transparent)]
     LexerError(#[from] LexerError),
@@ -56,6 +82,8 @@ impl ParserError {
             Self::UnexpectedEof { span, .. } => *span,
             Self::UnclosedBlock { span, .. } => *span,
             Self::InvalidAssignmentTarget { span } => *span,
+            Self::MismatchedBlockEnd { span, .. } => *span,
+            Self::AmbiguousBlockEnd { span, .. } => *span,
             Self::LexerError(err) => err.span(),
         }
     }

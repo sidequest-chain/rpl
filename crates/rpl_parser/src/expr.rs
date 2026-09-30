@@ -226,6 +226,32 @@ impl<'a> Parser<'a> {
 
             // Identifiers and lambdas (`param => body`)
             Token::Ident(name) => {
+                // Check if this identifier begins a block-based struct initialization (`TypeName:\n field: val\n end`)
+                if name.chars().next().is_some_and(|c| c.is_uppercase())
+                    && self.check(&Token::Colon)
+                    && self.peek_next() == Some(&Token::Newline)
+                {
+                    let colon_span = self.advance().1; // consume ':'
+                    self.push_block(&name, None, colon_span);
+                    self.skip_newlines();
+
+                    let mut fields = Vec::new();
+                    while !self.check(&Token::End) && !self.is_at_end() {
+                        let (field_name, _) = self.expect_ident("field name")?;
+                        self.expect_token(&Token::Colon, "':'")?;
+                        let value = self.parse_expr()?;
+                        fields.push((field_name, value));
+                        self.skip_newlines();
+                    }
+
+                    let end_span = self.expect_block_end()?;
+                    return Ok(Expr::StructBlockInit {
+                        name,
+                        fields,
+                        span: span.combine(end_span),
+                    });
+                }
+
                 // Check if this identifier is followed by `:` in named arguments (`sku: "..."`)
                 if self.check(&Token::Colon) && self.peek_next() != Some(&Token::Newline) {
                     self.advance(); // consume ':'

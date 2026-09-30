@@ -1,7 +1,7 @@
 # RPL (Running Pseudo Language)
 
 [![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL_1.2-blue.svg)](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)
-[![Build Status](https://img.shields.io/badge/tests-47%20passed-brightgreen.svg)]()
+[![Build Status](https://img.shields.io/badge/tests-56%20passed-brightgreen.svg)]()
 [![Language: Rust](https://img.shields.io/badge/rust-2021%20edition-orange.svg)]()
 
 > **Running Pseudo Language (RPL)** is a compiled, zero-garbage-collector systems programming language designed to eliminate the translation boundary between conceptual pseudocode and high-performance native execution.
@@ -72,10 +72,10 @@ The project is structured as a modular Rust workspace and is actively transition
 | **[`crates/rpl_lexer`](crates/rpl_lexer)** | Logos tokenizer, 28 keywords, string interpolation, newlines | ✅ **Complete** | 9 tests |
 | **[`crates/rpl_parser`](crates/rpl_parser)** | Recursive Descent (stmts) + Pratt parser (expressions) | ✅ **Complete** | 16 tests |
 | **[`crates/rpl_typechecker`](crates/rpl_typechecker)** | Semantic typing, trit exhaustiveness, move semantics | ✅ **Complete** | 13 tests |
-| **[`crates/rpl_codegen_c`](crates/rpl_codegen_c)** | High-performance C99 transpiler backend | 🚧 *In Progress (Phase 1)* | Staged |
-| **[`crates/rpl_cli`](crates/rpl_cli)** | Command-line interface (`rpl run`, `rpl build`, `rpl check`) | 🚧 *Planned (Phase 1)* | Staged |
+| **[`crates/rpl_codegen_c`](crates/rpl_codegen_c)** | High-performance C99 transpiler backend | ✅ **Complete (Phase 1)** | 6 tests |
+| **[`crates/rpl_cli`](crates/rpl_cli)** | Command-line interface (`rpl run`, `rpl build`, `rpl check`) | ✅ **Complete (Phase 1)** | 3 tests |
 
-**Overall Verification:** 47 passing tests across all crates, 0 clippy warnings.
+**Overall Verification:** 56 passing tests across all crates, 0 clippy warnings.
 
 ---
 
@@ -89,7 +89,9 @@ rpl/
 ├── Cargo.toml              # Root workspace manifest
 ├── docs/
 │   ├── CODE_MAP.md         # Comprehensive code navigation map for LLMs and developers
-│   └── PROJECT_SPEC.md     # Official language specification and grammar rules
+│   ├── LANGUAGE_GUIDE.md   # Practical language guide and tutorial for developers
+│   ├── PROJECT_SPEC.md     # Official language specification and grammar rules
+│   └── ROADMAP.md          # Architectural evolution roadmap and hybrid execution model
 ├── crates/
 │   ├── rpl_ast/            # AST data structures
 │   ├── rpl_lexer/          # Tokenizer & lexer
@@ -122,6 +124,8 @@ cargo clippy --workspace -- -D warnings
 
 ## Documentation
 
+* **[ROADMAP.md](docs/ROADMAP.md):** Architectural evolution roadmap, hybrid execution model (C99 + Cranelift JIT), and self-hosting strategy.
+* **[LANGUAGE_GUIDE.md](docs/LANGUAGE_GUIDE.md):** Practical language guide and tutorial covering syntax, `Trit` logic, collections, and examples.
 * **[PROJECT_SPEC.md](docs/PROJECT_SPEC.md):** Complete technical specification, formal grammar, type system semantics, and language examples.
 * **[CODE_MAP.md](docs/CODE_MAP.md):** Detailed module index, types registry, invariant cheat sheet, and extension guidelines for LLM agents and contributors.
 * **[AGENTS.md](AGENTS.md):** Operating rules and the Tiered Commit System (Lite NWBW & Full HIDC) required for autonomous agents.

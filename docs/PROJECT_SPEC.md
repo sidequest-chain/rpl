@@ -250,8 +250,8 @@ fn calculate_order_total(order: Order) -> Result[Float, String]:
                 grand_total = grand_total + total
             case Error(err):
                 return Error("Order calculation failed on $order.id: $err")
-        end
-    end
+        end match
+    end for
 
     return Ok(grand_total)
 end
@@ -332,9 +332,9 @@ fn run_pipeline():
         parallel for path in targets:
             let info = inspect_file(path)
             results_channel.send(info)
-        end
+        end for
         results_channel.close()
-    end
+    end spawn
 
     let mut total_lines = 0
     for metadata in results_channel:

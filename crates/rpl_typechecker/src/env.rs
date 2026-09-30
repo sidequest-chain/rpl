@@ -69,6 +69,30 @@ impl Environment {
             },
         );
 
+        self.functions.insert(
+            "println".to_string(),
+            FnSignature {
+                params: vec![Param::new("msg".to_string(), Type::String, Span::dummy())],
+                return_type: None,
+            },
+        );
+
+        self.functions.insert(
+            "rpl_trit_to_str".to_string(),
+            FnSignature {
+                params: vec![Param::new("t".to_string(), Type::Trit, Span::dummy())],
+                return_type: Some(Type::String),
+            },
+        );
+
+        self.functions.insert(
+            "trit_to_str".to_string(),
+            FnSignature {
+                params: vec![Param::new("t".to_string(), Type::Trit, Span::dummy())],
+                return_type: Some(Type::String),
+            },
+        );
+
         // String helper methods
         self.functions.insert(
             "to_lower".to_string(),

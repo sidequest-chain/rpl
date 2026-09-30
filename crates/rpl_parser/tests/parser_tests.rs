@@ -308,8 +308,8 @@ fn calculate_order_total(order: Order) -> Result[Float, String]:
                 grand_total = grand_total + total
             case Error(err):
                 return Error("Order calculation failed on $order.id: $err")
-        end
-    end
+        end match
+    end for
 
     return Ok(grand_total)
 end
@@ -398,7 +398,7 @@ fn run_pipeline():
         parallel for path in targets:
             let info = inspect_file(path)
             results_channel.send(info)
-        end
+        end for
         results_channel.close()
     end
 
@@ -509,3 +509,88 @@ fn test_parser_error_diagnostics() {
     let err_semi = parse_program(semi).unwrap_err();
     assert!(matches!(err_semi, ParserError::LexerError(..)));
 }
+
+#[test]
+fn test_labeled_block_ends_positive() {
+    let code = r#"
+type Point:
+    x: Int
+    y: Int
+end Point
+
+fn calculate(val: Int) -> Int:
+    if val > 0:
+        for i in 1..val:
+            match i:
+                case 1:
+                    print "one"
+            end match
+        end for
+    end if
+    return val
+end fn
+"#;
+    let prog = parse_program(code).expect("Should parse valid labeled block ends successfully");
+    assert_eq!(prog.statements.len(), 2);
+}
+
+#[test]
+fn test_mismatched_block_end_negative() {
+    let code = r#"
+fn test():
+    if true:
+        print "hello"
+    end for
+end fn
+"#;
+    let err = parse_program(code).unwrap_err();
+    match err {
+        ParserError::MismatchedBlockEnd { expected, found, .. } => {
+            assert_eq!(expected, "if");
+            assert_eq!(found, "for");
+        }
+        other => panic!("Expected MismatchedBlockEnd, got {other:?}"),
+    }
+}
+
+#[test]
+fn test_ambiguous_block_end_threshold_negative() {
+    // Depth 1: fn
+    // Depth 2: if
+    // Depth 3: for -> bare `end` should trigger AmbiguousBlockEnd
+    let code = r#"
+fn compute():
+    if true:
+        for x in [1, 2]:
+            print x
+        end
+    end if
+end fn
+"#;
+    let err = parse_program(code).unwrap_err();
+    match err {
+        ParserError::AmbiguousBlockEnd { depth, expected, .. } => {
+            assert_eq!(depth, 3);
+            assert_eq!(expected, "for");
+        }
+        other => panic!("Expected AmbiguousBlockEnd, got {other:?}"),
+    }
+}
+
+#[test]
+fn test_struct_block_init_parsing() {
+    let code = r#"
+type User:
+    name: String
+    age: Int
+end User
+
+let u = User:
+    name: "Alice"
+    age: 30
+end User
+"#;
+    let prog = parse_program(code).expect("Should parse struct block initialization");
+    assert_eq!(prog.statements.len(), 2);
+}
+

@@ -1,4 +1,4 @@
-﻿//! Recursive expression tree data structures.
+//! Recursive expression tree data structures.
 
 use crate::literal::Literal;
 use crate::op::{BinaryOp, UnaryOp};
@@ -129,6 +129,16 @@ pub enum Expr {
         /// Source code span of the string interpolation expression.
         span: Span,
     },
+
+    /// Block-based struct/record initialization (`TypeName: field: val end`).
+    StructBlockInit {
+        /// Name of the composite type.
+        name: String,
+        /// Sequence of field names and value expressions.
+        fields: Vec<(String, Expr)>,
+        /// Source code span of the block initialization.
+        span: Span,
+    },
 }
 
 impl Expr {
@@ -148,6 +158,7 @@ impl Expr {
             Self::NamedArg { span, .. } => *span,
             Self::Lambda { span, .. } => *span,
             Self::StringInterpolation { span, .. } => *span,
+            Self::StructBlockInit { span, .. } => *span,
         }
     }
 }

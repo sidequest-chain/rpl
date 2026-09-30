@@ -155,16 +155,10 @@ impl<'a> Parser<'a> {
         };
 
         let colon_span = self.expect_token(&Token::Colon, "':'")?;
+        self.push_block("fn", Some(&name), colon_span);
         let body = self.parse_block(colon_span)?;
 
-        if self.is_at_end() {
-            return Err(ParserError::UnclosedBlock {
-                started_at: colon_span,
-                span: self.eof_span,
-            });
-        }
-
-        let end_span = self.expect_token(&Token::End, "'end'")?;
+        let end_span = self.expect_block_end()?;
         Ok(Stmt::FnDecl {
             name,
             params,
@@ -179,6 +173,7 @@ impl<'a> Parser<'a> {
         let start_span = self.expect_token(&Token::Type, "'type'")?;
         let (name, _) = self.expect_ident("type name")?;
         let colon_span = self.expect_token(&Token::Colon, "':'")?;
+        self.push_block("type", Some(&name), colon_span);
 
         let mut fields = Vec::new();
         self.skip_newlines();
@@ -192,14 +187,7 @@ impl<'a> Parser<'a> {
             self.skip_newlines();
         }
 
-        if self.is_at_end() {
-            return Err(ParserError::UnclosedBlock {
-                started_at: colon_span,
-                span: self.eof_span,
-            });
-        }
-
-        let end_span = self.expect_token(&Token::End, "'end'")?;
+        let end_span = self.expect_block_end()?;
         Ok(Stmt::TypeDecl {
             name,
             fields,
@@ -207,28 +195,52 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// Parses `if condition: then_branch [else: else_branch] end`.
+    /// Parses `if condition: then_branch [else if condition: ...] [else: else_branch] end`.
     fn parse_if_stmt(&mut self) -> Result<Stmt, ParserError> {
+        self.parse_if_helper(false)
+    }
+
+    fn parse_if_helper(&mut self, is_chained: bool) -> Result<Stmt, ParserError> {
         let start_span = self.expect_token(&Token::If, "'if'")?;
         let condition = self.parse_expr()?;
         let colon_span = self.expect_token(&Token::Colon, "':'")?;
 
-        let then_branch = self.parse_block(colon_span)?;
-        let else_branch = if self.match_token(&Token::Else) {
-            let else_colon_span = self.expect_token(&Token::Colon, "':'")?;
-            Some(self.parse_block(else_colon_span)?)
-        } else {
-            None
-        };
-
-        if self.is_at_end() {
-            return Err(ParserError::UnclosedBlock {
-                started_at: colon_span,
-                span: self.eof_span,
-            });
+        if !is_chained {
+            self.push_block("if", None, colon_span);
         }
 
-        let end_span = self.expect_token(&Token::End, "'end'")?;
+        let then_branch = self.parse_block(colon_span)?;
+
+        let (else_branch, end_span) = if self.match_token(&Token::Else) {
+            if self.check(&Token::If) {
+                // Chained `else if`: parse nested if statement
+                let nested_if = self.parse_if_helper(true)?;
+                let end = if !is_chained {
+                    self.expect_block_end()?
+                } else {
+                    nested_if.span()
+                };
+                let block = Block::new(vec![nested_if], start_span.combine(end));
+                (Some(block), end)
+            } else {
+                let else_colon_span = self.expect_token(&Token::Colon, "':'")?;
+                let else_branch = self.parse_block(else_colon_span)?;
+                let end = if !is_chained {
+                    self.expect_block_end()?
+                } else {
+                    else_branch.span
+                };
+                (Some(else_branch), end)
+            }
+        } else {
+            let end = if !is_chained {
+                self.expect_block_end()?
+            } else {
+                then_branch.span
+            };
+            (None, end)
+        };
+
         Ok(Stmt::If {
             condition,
             then_branch,
@@ -242,6 +254,7 @@ impl<'a> Parser<'a> {
         let start_span = self.expect_token(&Token::Match, "'match'")?;
         let subject = self.parse_expr()?;
         let colon_span = self.expect_token(&Token::Colon, "':'")?;
+        self.push_block("match", None, colon_span);
 
         let mut cases = Vec::new();
         self.skip_newlines();
@@ -269,14 +282,7 @@ impl<'a> Parser<'a> {
             self.skip_newlines();
         }
 
-        if self.is_at_end() {
-            return Err(ParserError::UnclosedBlock {
-                started_at: colon_span,
-                span: self.eof_span,
-            });
-        }
-
-        let end_span = self.expect_token(&Token::End, "'end'")?;
+        let end_span = self.expect_block_end()?;
         Ok(Stmt::Match {
             subject,
             cases,
@@ -303,16 +309,11 @@ impl<'a> Parser<'a> {
         self.expect_token(&Token::In, "'in'")?;
         let iterator = self.parse_expr()?;
         let colon_span = self.expect_token(&Token::Colon, "':'")?;
+        let alt = if is_parallel { Some("parallel") } else { None };
+        self.push_block("for", alt, colon_span);
         let body = self.parse_block(colon_span)?;
 
-        if self.is_at_end() {
-            return Err(ParserError::UnclosedBlock {
-                started_at: colon_span,
-                span: self.eof_span,
-            });
-        }
-
-        let end_span = self.expect_token(&Token::End, "'end'")?;
+        let end_span = self.expect_block_end()?;
         let span = start_span.combine(end_span);
 
         if is_parallel {
@@ -336,16 +337,10 @@ impl<'a> Parser<'a> {
     fn parse_spawn_stmt(&mut self) -> Result<Stmt, ParserError> {
         let start_span = self.expect_token(&Token::Spawn, "'spawn'")?;
         let colon_span = self.expect_token(&Token::Colon, "':'")?;
+        self.push_block("spawn", None, colon_span);
         let body = self.parse_block(colon_span)?;
 
-        if self.is_at_end() {
-            return Err(ParserError::UnclosedBlock {
-                started_at: colon_span,
-                span: self.eof_span,
-            });
-        }
-
-        let end_span = self.expect_token(&Token::End, "'end'")?;
+        let end_span = self.expect_block_end()?;
         Ok(Stmt::Spawn {
             body,
             span: start_span.combine(end_span),

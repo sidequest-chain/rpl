@@ -670,6 +670,36 @@ impl TypeChecker {
                 self.env.exit_scope();
                 Type::Named(format!("Lambda[{body_ty}]"))
             }
+
+            Expr::StructBlockInit { name, fields, span } => {
+                if let Some(decl_fields) = self.env.lookup_type(name).cloned() {
+                    for (f_name, f_val) in fields {
+                        if let Some(field) = decl_fields.iter().find(|f| &f.name == f_name) {
+                            let val_ty = self.check_expr(f_val);
+                            if !self.types_compatible(&field.field_type, &val_ty) {
+                                self.errors.push(TypeError::TypeMismatch {
+                                    expected: field.field_type.clone(),
+                                    found: val_ty,
+                                    span: f_val.span(),
+                                });
+                            }
+                        } else {
+                            self.errors.push(TypeError::TypeMismatch {
+                                expected: Type::Named(format!("{name}.{f_name}")),
+                                found: Type::Named("unknown field".into()),
+                                span: f_val.span(),
+                            });
+                        }
+                    }
+                    Type::Named(name.clone())
+                } else {
+                    self.errors.push(TypeError::UndefinedType {
+                        name: name.clone(),
+                        span: *span,
+                    });
+                    Type::Named(name.clone())
+                }
+            }
         }
     }
 

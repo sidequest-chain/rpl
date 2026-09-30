@@ -13,6 +13,7 @@
    - [2.4 rpl_typechecker (Semantic & Kleene Logic Validator)](#24-rpl_typechecker)
    - [2.5 rpl_codegen_c (Phase 1 C99 Transpiler Backend)](#25-rpl_codegen_c)
    - [2.6 rpl_cli (CLI Interface)](#26-rpl_cli)
+   - [2.7 rpl_codegen_cranelift (Phase 2 Cranelift JIT)](#27-rpl_codegen_cranelift)
 3. [Language Invariants & Grammar Rules](#3-language-invariants--grammar-rules)
 4. [Frequent Development Paths (Extension Cheatsheet)](#4-frequent-development-paths)
 5. [Verification Commands](#5-verification-commands)
@@ -33,11 +34,12 @@
                 ▼
   crates/rpl_typechecker (Type checking, Kleene trit algebra, move semantics)
                 │ Validated Program AST
-                ▼
-  crates/rpl_codegen_c (Phase 1: High-performance C99 code generation)
-                │ Output C99 code (.c / .h)
-                ▼
-  Target Compiler (Clang / GCC / MSVC) -> Native Binary
+                ├─────────────────────────────────────────────┐
+                ▼                                             ▼
+  crates/rpl_codegen_c (Phase 1: C99 Transpiler)   crates/rpl_codegen_cranelift (Phase 2: JIT)
+                │ Output C99 code (.c / .h)                   │ In-Memory Machine Code
+                ▼                                             ▼
+  Target Compiler (Clang / GCC / MSVC) -> Native Binary   Instant In-Memory Execution
 ```
 
 ---
@@ -129,17 +131,30 @@
 
 ### 2.5 `rpl_codegen_c`
 - **Location:** `crates/rpl_codegen_c/`
-- **Status:** Phase 1 Target (Transpiler backend emitting clean, optimized C99 code).
-- **Key Files:**
-  - `src/.gitkeep`: Staging area for transpiler implementation.
+- **Status:** ✅ **Complete (Phase 1)** — C99 transpiler backend emitting clean, optimized C99 code.
+- **Key Modules & Files:**
+  - `src/lib.rs`: `generate_c(program: &Program) -> Result<String, CodegenError>` entrypoint.
+  - `src/codegen.rs`: `CGenerator` translating declarations, functions, expressions, and control flow.
+  - `src/runtime.rs`: `RPL_RUNTIME_H` header with Kleene ternary logic (`rpl_trit_t`), output functions, and string interpolation helpers.
+  - `src/types.rs`: C type mapping functions (`to_c_type`, `to_c_return_type`).
+  - `src/error.rs`: `CodegenError` definitions via `thiserror`.
+  - `tests/codegen_tests.rs`: Comprehensive test suite verifying C generation and native compilation with host C compiler.
 
 ---
 
 ### 2.6 `rpl_cli`
 - **Location:** `crates/rpl_cli/`
-- **Status:** Phase 1 Target (CLI command interface: `rpl run`, `rpl build`, `rpl check`).
-- **Key Files:**
-  - `src/.gitkeep`: Staging area for CLI binary implementation.
+- **Status:** ✅ **Complete (Phase 1)** — CLI binary driver providing `rpl check`, `rpl build`, and `rpl run`.
+- **Key Modules & Files:**
+  - `src/main.rs`: Clap-based command line interface detecting host C compilers (`clang`, `gcc`, `zig cc`, `cc`, `cl.exe`).
+  - `tests/cli_tests.rs`: End-to-end integration tests for `check`, `build --emit-c`, and `run`.
+
+---
+
+### 2.7 `rpl_codegen_cranelift`
+- **Location:** `crates/rpl_codegen_cranelift/`
+- **Status:** Phase 2 Target (In-memory Cranelift JIT engine for sub-millisecond execution and REPL without external C toolchain).
+- **Architecture & Roadmap:** See [ROADMAP.md](ROADMAP.md) for phased execution strategy and self-hosting bootstrap milestones.
 
 ---
 

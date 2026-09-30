@@ -1,0 +1,65 @@
+type Reaktor:
+    id: String
+    temperatuur: Float
+    rohk_normis: Trit
+    jahutus_aktiivne: Trit
+end Reaktor
+
+fn arvuta_turvalisus(r: Reaktor) -> Trit:
+    // Kleene loogika:
+    // Kui rõhk on false, on süsteem ohus sõltumata jahutusest
+    // Kui jahutus on unknown, on turvaolek määramatu (unknown)
+    return r.rohk_normis and r.jahutus_aktiivne
+end fn
+
+fn raporteeri(reaktor: Reaktor):
+    let olek = arvuta_turvalisus(reaktor)
+    
+    print "=========================================="
+    print "Reaktori raport: $reaktor.id"
+    print "Temperatuur: $reaktor.temperatuur C"
+    print "Rõhk normis: $reaktor.rohk_normis"
+    print "Jahutus: $reaktor.jahutus_aktiivne"
+    print "------------------------------------------"
+    
+    match olek:
+        case true:
+            print "AUTOMAATIKA: Süsteem on 100% stabiilne."
+        case false:
+            print "HÄIRE: Kriitiline rike! Käivita avariiseiskamine!"
+        case unknown:
+            print "HOIATUS: Telemeetria puudulik! Vajab inseneri kontrolli."
+    end match
+    print "=========================================="
+    print ""
+end fn
+
+// Diagnostika tsükkel
+for ring in 1..3:
+    print "Käivitub diagnostikaring: $ring"
+    if ring == 1:
+        let r1 = Reaktor:
+            id: "R-01-A"
+            temperatuur: 312.5
+            rohk_normis: true
+            jahutus_aktiivne: true
+        end Reaktor
+        raporteeri(r1)
+    else if ring == 2:
+        let r2 = Reaktor:
+            id: "R-02-B"
+            temperatuur: 489.1
+            rohk_normis: unknown
+            jahutus_aktiivne: true
+        end Reaktor
+        raporteeri(r2)
+    else:
+        let r3 = Reaktor:
+            id: "R-03-C"
+            temperatuur: 720.0
+            rohk_normis: false
+            jahutus_aktiivne: unknown
+        end Reaktor
+        raporteeri(r3)
+    end if
+end for

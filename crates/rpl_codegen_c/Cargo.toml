@@ -1,0 +1,13 @@
+[package]
+name = "rpl_codegen_c"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "C99 transpiler backend for the RPL programming language"
+
+[dependencies]
+thiserror = "2"
+rpl_ast = { path = "../rpl_ast" }
+rpl_parser = { path = "../rpl_parser" }
+rpl_typechecker = { path = "../rpl_typechecker" }

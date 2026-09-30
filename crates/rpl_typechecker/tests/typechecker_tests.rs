@@ -65,13 +65,13 @@ fn calculate_total(order: Order) -> Result[Float, String]:
     for line in order.lines:
         if line.quantity <= 0:
             return Error("InvalidQuantity")
-        end
+        end if
         if line.unit_price < 0.0:
             return Error("NegativePrice")
-        end
+        end if
 
         subtotal = subtotal + (line.quantity.to_float() * line.unit_price)
-    end
+    end for
 
     let discount_amount = subtotal * order.discount
     let taxable = subtotal - discount_amount
@@ -136,14 +136,14 @@ fn process_logs(logs: List[LogMetadata]):
     spawn:
         for alert in alert_channel:
             print "Background logger: Alert from $alert.source_ip, severity $alert.severity"
-        end
-    end
+        end for
+    end spawn
 
     parallel for item in logs:
         if item.severity >= 3:
             alert_channel.send(item)
-        end
-    end
+        end if
+    end for
 
     alert_channel.close()
 end
