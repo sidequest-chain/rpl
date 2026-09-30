@@ -1,0 +1,53 @@
+type OrderLine:
+    sku: String
+    quantity: Int
+    unit_price: Float
+end
+
+type Order:
+    id: Int
+    customer_id: String
+    lines: List[OrderLine]
+end
+
+fn calculate_line_total(line: OrderLine) -> Result[Float, String]:
+    if line.quantity <= 0:
+        return Error("Invalid quantity: $line.quantity on item $line.sku")
+    end
+    if line.unit_price < 0.0:
+        return Error("Negative price encountered on item $line.sku")
+    end
+
+    return Ok(line.quantity.to_float() * line.unit_price)
+end
+
+fn calculate_order_total(order: Order) -> Result[Float, String]:
+    let mut grand_total = 0.0
+
+    for line in order.lines:
+        match calculate_line_total(line):
+            case Ok(total):
+                grand_total = grand_total + total
+            case Error(err):
+                return Error("Order calculation failed on $order.id: $err")
+        end match
+    end for
+
+    return Ok(grand_total)
+end
+
+let item1 = OrderLine(sku: "SYS-A100", quantity: 3, unit_price: 12.50)
+let item2 = OrderLine(sku: "NET-B200", quantity: 1, unit_price: 45.00)
+
+let batch = Order(
+    id: 9001,
+    customer_id: "CLIENT-849",
+    lines: [item1, item2]
+)
+
+match calculate_order_total(batch):
+    case Ok(total_amount):
+        print "Order $batch.id total: $total_amount USD"
+    case Error(failure_message):
+        print "ERROR: $failure_message"
+end

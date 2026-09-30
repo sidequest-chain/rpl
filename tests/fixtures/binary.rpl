@@ -1,0 +1,44 @@
+type FrameHeader:
+    protocol_version: UInt8
+    payload_size: UInt16
+    checksum: UInt32
+end
+
+fn parse_frame(buffer: List[Byte]) -> Result[FrameHeader, String]:
+    if buffer.length < 7:
+        return Error("Frame underflow: required 7 bytes, found $buffer.length")
+    end
+
+    let version = buffer[0]
+    let size = (buffer[1].to_uint16() << 8) or buffer[2].to_uint16()
+    
+    let c3 = buffer[3].to_uint32() << 24
+    let c2 = buffer[4].to_uint32() << 16
+    let c1 = buffer[5].to_uint32() << 8
+    let c0 = buffer[6].to_uint32()
+    let verified_crc = c3 or c2 or c1 or c0
+
+    let header = FrameHeader(
+        protocol_version: version,
+        payload_size: size,
+        checksum: verified_crc
+    )
+
+    return Ok(header)
+end
+
+let raw_bytes: List[Byte] = [
+    0x01,
+    0x00, 0x40,
+    0x1A, 0x2B, 0x3C, 0x4D
+]
+
+match parse_frame(raw_bytes):
+    case Ok(header):
+        print "Frame successfully validated:"
+        print "- Protocol Version: $header.protocol_version"
+        print "- Payload Length: $header.payload_size bytes"
+        print "- CRC Checksum: $header.checksum"
+    case Error(err):
+        print "Frame decode failed: $err"
+end

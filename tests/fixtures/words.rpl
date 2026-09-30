@@ -1,0 +1,29 @@
+fn tokenize_text(input_str: String) -> List[String]:
+    let delimiters = [" ", ",", ".", "!", "?", ":", ";", "\n", "\t"]
+    return input_str
+        |> to_lower()
+        |> split_any(delimiters)
+        |> filter(token => token.length > 0)
+end
+
+fn run_word_frequency():
+    let passage = "The quiet forest spoke in autumn tones. The night was cold."
+    let tokens = tokenize_text(passage)
+    
+    let mut frequency_map = Map[String, Int]()
+
+    for word in tokens:
+        let current_count = frequency_map.get(word, 0)
+        frequency_map[word] = current_count + 1
+    end
+
+    print "--- Word Frequency Analysis (UTF-8) ---"
+    print "Character count: $passage.length"
+    print "Unique tokens: $frequency_map.count"
+
+    for word, count in frequency_map:
+        print "Token '$word': $count"
+    end
+end
+
+run_word_frequency()

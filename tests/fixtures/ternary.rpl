@@ -1,0 +1,29 @@
+type SensorReport:
+    device_id: String
+    temperature_nominal: Trit
+    pressure_valve_open: Trit
+    voltage_stable: Trit
+end
+
+fn evaluate_telemetry(report: SensorReport) -> Trit:
+    return report.temperature_nominal and report.pressure_valve_open and report.voltage_stable
+end
+
+let telemetry = SensorReport(
+    device_id: "TURBINE-04",
+    temperature_nominal: true,
+    pressure_valve_open: unknown,
+    voltage_stable: true
+)
+
+let system_integrity = evaluate_telemetry(telemetry)
+
+print "--- Telemetry Diagnostic ---"
+match system_integrity:
+    case true:
+        print "All telemetry verified. Operation within safe margins."
+    case false:
+        print "CRITICAL ALARM: System limits exceeded. Initiate shutdown."
+    case unknown:
+        print "WARNING: Sensor telemetry incomplete ($telemetry.device_id). Requesting re-scan."
+end

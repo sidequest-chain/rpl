@@ -1,0 +1,38 @@
+type LogMetadata:
+    path: String
+    line_count: Int
+end
+
+fn inspect_file(file_path: String) -> LogMetadata:
+    let line_estimate = file_path.length * 150
+    return LogMetadata(path: file_path, line_count: line_estimate)
+end
+
+fn run_pipeline():
+    let targets = [
+        "/var/log/syslog",
+        "/var/log/audit.log",
+        "/var/log/nginx/access.log",
+        "/var/log/kernel.log"
+    ]
+
+    let results_channel = Channel[LogMetadata]()
+
+    spawn:
+        parallel for path in targets:
+            let info = inspect_file(path)
+            results_channel.send(info)
+        end for
+        results_channel.close()
+    end spawn
+
+    let mut total_lines = 0
+    for metadata in results_channel:
+        print "Processed: $metadata.path ($metadata.line_count lines)"
+        total_lines = total_lines + metadata.line_count
+    end
+
+    print "Parallel inspection complete. Total log lines: $total_lines"
+end
+
+run_pipeline()

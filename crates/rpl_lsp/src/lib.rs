@@ -213,7 +213,13 @@ impl LanguageServer for Backend {
         Ok(InitializeResult {
             server_info: Some(ServerInfo {
                 name: "rpl-lsp".to_string(),
-                version: Some("0.2+2".to_string()),
+                version: Some(
+                    include_str!("../../../VERSION")
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("0.2+2")
+                        .to_string(),
+                ),
             }),
             capabilities: ServerCapabilities {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(

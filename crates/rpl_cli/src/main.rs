@@ -10,9 +10,10 @@ use rpl_codegen_c::generate_c;
 use rpl_parser::parse_program;
 use rpl_typechecker::check_program;
 
-const RPL_RELEASE: &str = "0.2+2 \"Tohtlane\"";
+const RPL_RELEASE: &str = include_str!("../../../VERSION");
 const VERSION_STRING: &str = concat!(
-    "0.2+2 \"Tohtlane\"\nTarget: ",
+    include_str!("../../../VERSION"),
+    "\nTarget: ",
     env!("RPL_TARGET"),
     " (backends: cranelift-jit, c99-zig)"
 );

@@ -185,3 +185,52 @@ fn test_cli_lsp_help() {
     );
 }
 
+#[test]
+fn test_version_consistency_across_workspace() {
+    let root_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+
+    let version_file = root_dir.join("VERSION");
+    let version_content = fs::read_to_string(&version_file)
+        .expect("VERSION file must exist at repository root")
+        .trim()
+        .to_string();
+
+    // 1. Verify README.md contains exact version string
+    let readme_content = fs::read_to_string(root_dir.join("README.md"))
+        .expect("README.md must exist");
+    assert!(
+        readme_content.contains(&version_content),
+        "README.md does not contain exact release from VERSION ('{}')",
+        version_content
+    );
+
+    // 2. Verify docs/PROJECT_SPEC.md contains exact version string
+    let spec_content = fs::read_to_string(root_dir.join("docs").join("PROJECT_SPEC.md"))
+        .expect("PROJECT_SPEC.md must exist");
+    assert!(
+        spec_content.contains(&version_content),
+        "PROJECT_SPEC.md does not contain exact release from VERSION ('{}')",
+        version_content
+    );
+
+    // 3. Verify rpl --version matches root VERSION
+    let rpl_bin = get_rpl_bin();
+    let output = Command::new(&rpl_bin)
+        .arg("--version")
+        .output()
+        .expect("Failed to run rpl --version");
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains(&format!("rpl {}", version_content)),
+        "rpl --version output '{}' does not match VERSION ('rpl {}')",
+        stdout,
+        version_content
+    );
+}
+
+

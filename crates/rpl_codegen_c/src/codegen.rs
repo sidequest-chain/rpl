@@ -85,6 +85,22 @@ impl CGenerator {
         "    ".repeat(self.indent_level)
     }
 
+    fn is_integer_or_byte(&self, ty: &Type) -> bool {
+        matches!(
+            ty,
+            Type::Int
+                | Type::Byte
+                | Type::Int8
+                | Type::Int16
+                | Type::Int32
+                | Type::Int64
+                | Type::UInt8
+                | Type::UInt16
+                | Type::UInt32
+                | Type::UInt64
+        )
+    }
+
     /// Transpiles the given `Program` AST into a complete, standalone C99 source string.
     pub fn generate(&mut self, program: &Program) -> Result<String, CodegenError> {
         // Pre-pass: collect types and function signatures for forward references
@@ -597,6 +613,8 @@ impl CGenerator {
                     BinaryOp::And => {
                         if is_trit {
                             Ok(format!("rpl_trit_and({c_left}, {c_right})"))
+                        } else if self.is_integer_or_byte(&left_ty) && self.is_integer_or_byte(&right_ty) {
+                            Ok(format!("({c_left} & {c_right})"))
                         } else {
                             Ok(format!("({c_left} && {c_right})"))
                         }
@@ -604,6 +622,8 @@ impl CGenerator {
                     BinaryOp::Or => {
                         if is_trit {
                             Ok(format!("rpl_trit_or({c_left}, {c_right})"))
+                        } else if self.is_integer_or_byte(&left_ty) && self.is_integer_or_byte(&right_ty) {
+                            Ok(format!("({c_left} | {c_right})"))
                         } else {
                             Ok(format!("({c_left} || {c_right})"))
                         }
@@ -629,6 +649,8 @@ impl CGenerator {
                     UnaryOp::Not => {
                         if is_trit {
                             Ok(format!("rpl_trit_not({c_expr})"))
+                        } else if self.is_integer_or_byte(&expr_ty) {
+                            Ok(format!("(~{c_expr})"))
                         } else {
                             Ok(format!("(!{c_expr})"))
                         }
@@ -741,9 +763,18 @@ impl CGenerator {
             }
 
             Expr::StructBlockInit { name, fields, .. } => {
+                let struct_def_fields = self
+                    .struct_fields
+                    .get(name)
+                    .cloned()
+                    .unwrap_or_default();
                 let mut field_inits = Vec::new();
                 for (fname, fval) in fields {
-                    let c_val = self.generate_expr(fval)?;
+                    let field_ty = struct_def_fields
+                        .iter()
+                        .find(|(n, _)| n == fname)
+                        .map(|(_, t)| t);
+                    let c_val = self.generate_expr_with_expected(fval, field_ty)?;
                     field_inits.push(format!(".{} = {}", sanitize_ident(fname), c_val));
                 }
                 Ok(format!("({}){{ {} }}", sanitize_ident(name), field_inits.join(", ")))
@@ -888,7 +919,9 @@ impl CGenerator {
                 } else if op.is_logical() {
                     let lt = self.infer_expr_type(left);
                     let rt = self.infer_expr_type(right);
-                    if lt == Type::Trit || rt == Type::Trit {
+                    if self.is_integer_or_byte(&lt) && self.is_integer_or_byte(&rt) {
+                        lt
+                    } else if lt == Type::Trit || rt == Type::Trit {
                         Type::Trit
                     } else {
                         Type::Bool
@@ -900,7 +933,9 @@ impl CGenerator {
             Expr::Unary { op, expr, .. } => {
                 if *op == UnaryOp::Not {
                     let ty = self.infer_expr_type(expr);
-                    if ty == Type::Trit {
+                    if self.is_integer_or_byte(&ty) {
+                        ty
+                    } else if ty == Type::Trit {
                         Type::Trit
                     } else {
                         Type::Bool

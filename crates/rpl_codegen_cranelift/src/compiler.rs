@@ -854,6 +854,8 @@ impl Compiler {
                         if is_trit {
                             // Kleene NOT = -val (-1 -> 1, 0 -> 0, 1 -> -1)
                             Ok(builder.ins().ineg(val))
+                        } else if self.is_integer_type(&expr_ty) {
+                            Ok(builder.ins().bnot(val))
                         } else {
                             let zero = builder.ins().iconst(cl_ty, 0);
                             let cmp = builder.ins().icmp(IntCC::Equal, val, zero);
@@ -1337,7 +1339,9 @@ impl Compiler {
                 } else if op.is_logical() {
                     let lt = self.infer_expr_type(left);
                     let rt = self.infer_expr_type(right);
-                    if lt == Type::Trit || rt == Type::Trit {
+                    if self.is_integer_type(&lt) && self.is_integer_type(&rt) {
+                        lt
+                    } else if lt == Type::Trit || rt == Type::Trit {
                         Type::Trit
                     } else {
                         Type::Bool
@@ -1349,7 +1353,9 @@ impl Compiler {
             Expr::Unary { op, expr, .. } => {
                 if *op == UnaryOp::Not {
                     let ty = self.infer_expr_type(expr);
-                    if ty == Type::Trit {
+                    if self.is_integer_type(&ty) {
+                        ty
+                    } else if ty == Type::Trit {
                         Type::Trit
                     } else {
                         Type::Bool
@@ -1382,5 +1388,21 @@ impl Compiler {
             }
             _ => Type::Int,
         }
+    }
+
+    fn is_integer_type(&self, ty: &Type) -> bool {
+        matches!(
+            ty,
+            Type::Int
+                | Type::Byte
+                | Type::Int8
+                | Type::Int16
+                | Type::Int32
+                | Type::Int64
+                | Type::UInt8
+                | Type::UInt16
+                | Type::UInt32
+                | Type::UInt64
+        )
     }
 }

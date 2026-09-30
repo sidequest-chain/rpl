@@ -386,6 +386,8 @@ impl TypeChecker {
                             Type::Bool
                         } else if target_ty == Type::Trit {
                             Type::Trit
+                        } else if self.is_integer_or_byte(&target_ty) {
+                            target_ty
                         } else {
                             self.errors.push(TypeError::InvalidUnaryOp {
                                 op: *op,
@@ -482,9 +484,11 @@ impl TypeChecker {
                         }
                     }
 
-                    // Kleene Ternary Logic for `and` and `or`
+                    // Kleene Ternary Logic and integer bitwise operations for `and` and `or`
                     BinaryOp::And | BinaryOp::Or => {
-                        if l_ty == Type::Bool && r_ty == Type::Bool {
+                        if self.is_integer_or_byte(&l_ty) && self.is_integer_or_byte(&r_ty) {
+                            l_ty
+                        } else if l_ty == Type::Bool && r_ty == Type::Bool {
                             Type::Bool
                         } else if (l_ty == Type::Trit || l_ty == Type::Bool)
                             && (r_ty == Type::Trit || r_ty == Type::Bool)
@@ -1006,6 +1010,16 @@ impl TypeChecker {
         // Result[T, E] variant compatibility with constructors Ok/Error
         if let (Type::Result(e_ok, e_err), Type::Result(a_ok, a_err)) = (expected, actual) {
             return self.types_compatible(e_ok, a_ok) && self.types_compatible(e_err, a_err);
+        }
+
+        // List[T] compatibility
+        if let (Type::List(e_inner), Type::List(a_inner)) = (expected, actual) {
+            return self.types_compatible(e_inner, a_inner);
+        }
+
+        // Map[K, V] compatibility
+        if let (Type::Map(e_k, e_v), Type::Map(a_k, a_v)) = (expected, actual) {
+            return self.types_compatible(e_k, a_k) && self.types_compatible(e_v, a_v);
         }
 
         // Trit and Bool are compatible in Trit context

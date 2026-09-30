@@ -35,13 +35,13 @@ jobs:
         id: release_info
         shell: bash
         run: |
-          CODE_VER=$(grep "const RPL_RELEASE" crates/rpl_cli/src/main.rs | cut -d '"' -f 2 | cut -d ' ' -f 1)
+          CODE_VER=$(cat VERSION | cut -d ' ' -f 1)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag_name }}" ]; then
             TAG="${{ inputs.tag_name }}"
           elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG="${{ github.ref_name }}"
           else
-            TAG="${CODE_VER:-0.2+1}"
+            TAG="${CODE_VER:-0.2+2}"
           fi
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
