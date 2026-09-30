@@ -44,6 +44,7 @@ The repository is structured as a modular Rust workspace:
 │   ├── rpl_ast/            # Concrete Abstract Syntax Tree data models
 │   ├── rpl_typechecker/    # Type verification, Trit semantics, and move checking
 │   ├── rpl_codegen_c/      # Phase 1: High-performance C99 transpiler backend
+│   ├── rpl_codegen_cranelift/ # Phase 2: In-memory Cranelift JIT engine
 │   └── rpl_cli/            # CLI binary interface (rpl run, rpl build, rpl check)
 └── tests/
     └── fixtures/           # Official .rpl test files and grammar targets
@@ -93,14 +94,14 @@ If any step fails, the agent must document the root cause before applying the mi
 
 ---
 
-## 4. Git Protocol: Tiered Commit System (Lite NWBW & Full HIDC)
+## 5. Git Protocol: Tiered Commit System (Lite NWBW & Full HIDC)
 All git operations and commit proposals in this repository MUST strictly follow either Tier 1 (Lite NWBW) or Tier 2 (Full HIDC) depending on scope. Commit messages MUST be written in English. Do not write shallow diff summaries.
 
-### 4.1 Tier Routing & Selection
+### 5.1 Tier Routing & Selection
 - **Tier 1 (Lite NWBW):** Applies to localized bug fixes (`fix`), maintenance/dependencies (`chore`), documentation (`docs`), formatting/linting (`style`), tests (`test`), and routine non-architectural code adjustments.
 - **Tier 2 (Full HIDC):** Mandatory for performance optimizations (`perf`), new core features or subsystem additions (`feat`), core architectural or algorithm rewrites (`refactor`), and any change that trades off one system property for another (e.g., latency vs. memory footprint).
 
-### 4.2 Pre-Implementation Guardrail (Before Modifying Code)
+### 5.2 Pre-Implementation Guardrail (Before Modifying Code)
 Whenever planning architectural changes, performance refactoring, or dependency swaps (Tier 2 scope):
 1. Check existing commit trailers for the target subsystem/files using:
    ```bash
@@ -109,32 +110,32 @@ Whenever planning architectural changes, performance refactoring, or dependency 
 2. **Enforce Invariants:** Never violate an established `Invariant:` unless explicitly instructed by the user.
 3. **Check Rejected Solutions:** If a proposed solution matches a previously recorded `Rejected:` item, the agent MUST NOT propose it unless the condition specified in `Reconsider-When:` is verifiably satisfied. Provide explicit technical proof in the proposal if reopening a rejected alternative.
 
-### 4.3 Commit Message Schemas
+### 5.3 Commit Message Schemas
 
 #### Tier 1: Lite NWBW Schema (Standard & Fixes)
 ```text
 <type>(<scope>): <short imperative title, max 50-72 chars>
 
-<The 1-3 Never WHY Why: change code diffs explaining here. it it, limitation/bug made made, necessary. or sentences summarize this triggered was what>
+<The 1-3 sentences explaining WHY this change was made, what limitation/bug triggered it, and why it was necessary. Never summarize code diffs here.>
 ```
 *Optional Trailer:* If the fix establishes or preserves an operational boundary against regressions:
 ```text
-Invariant: <Technical constraint future or preventing regression rule>
+Invariant: <Technical constraint or rule preventing future regression>
 ```
 
 #### Tier 2: Full HIDC Schema (Architectural & Performance)
 ```text
 <type>(<scope>): <short imperative title, max 50-72 chars>
 
-<Problem / 1-3 Context: Never WHY and architectural change code diffs existed, explaining here. impact. limitation made, sentences summarize system this was what>
+<Problem / Context: 1-3 sentences explaining WHY this change was made, what architectural limitation existed, and system impact. Never summarize code diffs here.>
 
-Hypothesis: <Measurable change expected from or outcome this verifiable>
-Invariant: <Technical architectural boundary, break changes constraint, future interface must not or rule that>
-Rejected: <Alternative approach considered> -> <Concrete disqualified it reason technical was why>
-Reconsider-When: <Specific again alternative condition, future hardware make or rejected release, that the trigger upstream viable would>
+Hypothesis: <Measurable or verifiable expected outcome from this change>
+Invariant: <Technical architectural boundary, interface rule that future changes must not break>
+Rejected: <Alternative approach considered> -> <Concrete technical reason why it was disqualified>
+Reconsider-When: <Specific future condition, hardware release, or upstream trigger that would make the rejected alternative viable again>
 ```
 
-### 4.4 Field Guidelines
+### 5.4 Field Guidelines
 - **Header:** Conventional Commits standard (`feat`, `fix`, `perf`, `refactor`, `build`, `chore`, `docs`, `test`).
 - **Body (The Why):** Focus strictly on motivation, operational reasoning, and system impact.
 - **Hypothesis:** Must be falsifiable or verifiable via tests/benchmarks (e.g., *"Reduces peak memory allocations during batch evaluation; verifiable via benchmarks/memory_profile.py"*). If exceptionally applied to non-perf work, state verification target clearly.
@@ -142,7 +143,7 @@ Reconsider-When: <Specific again alternative condition, future hardware make or 
 - **Rejected:** Document the shortcut or alternative that was intentionally avoided (e.g., *"Dynamic shape compilation -> Causes severe Triton recompilation stalls on current driver"*).
 - **Reconsider-When:** The exact trigger that invalidates the rejection (e.g., *"Upstream Triton issue #4582 is merged and tagged in PyTorch release"*).
 
-### 4.5 Execution Standard (Writing the Commit)
+### 5.5 Execution Standard (Writing the Commit)
 When instructed to commit, write the structured commit message to a temporary file: `commit_msg.txt`.
 
 Commit using the file reference:
@@ -156,3 +157,44 @@ rm commit_msg.txt
 ```
 
 **Rule:** Do NOT run interactive `git commit -m` with inline multi-line escaped text to prevent shell quote truncation and lost trailers.
+
+---
+
+## 6. Versioning Policy & Release Identity
+All agents and contributors must strictly enforce the following versioning discipline:
+
+1. **Format:** `MAJOR.MINOR+PATCH "Codename"` (e.g., `0.2+66 "Tohtlane"`).
+   - `MAJOR.MINOR`: Architectural generation and feature milestone.
+   - `+PATCH`: Monotonic build/patch/test count metadata (SemVer 2.0 build metadata compatible).
+   - `"Codename"`: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (1866).
+   - **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`).
+
+2. **Major Version Discipline:**
+   - The version series remains `0.x` until full self-hosting (`rpl-in-rpl`) is achieved at `1.0 "Põhja Konn"`.
+   - Bumping `MAJOR` (to 2.0, 3.0, etc.) is strictly forbidden unless there is an unavoidable, fundamental paradigm shift in core language mechanics.
+
+3. **Folklore Codenames Registry:**
+   - **Core Milestone Releases:**
+     - `0.1` "Puulane" (C99 transpiler)
+     - `0.2` "Tohtlane" (In-memory Cranelift JIT)
+     - `0.3` "Kratt" (Concurrency runtime & channels)
+     - `0.4` "Tulihänd" (Optimizations & standard collections)
+     - `0.5` "Siil" (Exhaustive borrow/ownership verification)
+     - `1.0` "Põhja Konn" (Self-hosting milestone)
+   - **Reserved Intermediate Milestones** (Discretionary codenames if additional phases are required before 1.0):
+     - `0.6` "Kodukäija" (Reserved)
+     - `0.7` "Murueit" (Reserved)
+     - `0.8` "Libahunt" (Reserved)
+     - `0.9` "Tark mees taskus" (Reserved)
+
+4. **Package Schema Lock (Immutability Rule):**
+   - External libraries/packages may choose either a 3-part schema (`0.0.0`) or a 4-part schema (`0.0.0.0`).
+   - Once a package registers its schema, it is permanently locked: altering the number of version components across releases is strictly forbidden.
+
+5. **Trinary Diagnostic Feedback:**
+   - Trits (`+`, `?`, `-`) are used exclusively for compiler status vectors during build/check steps:
+     `[Syntax/Parser . Typechecker . Codegen]`
+     - `[+ + +]`: Complete success.
+     - `[+ + ?]`: Check passed without codegen.
+     - `[+ - -]`: Typecheck failure.
+     - `[- - -]`: Lexer/Parser syntax failure.

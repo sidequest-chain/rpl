@@ -179,6 +179,7 @@ When reading or modifying RPL compiler code, keep these invariants strictly inta
 | **Trit 3-State Logic** | `Trit` has 3 states: `true`, `false`, `unknown`. Pattern matches over `Trit` MUST be exhaustive. |
 | **String Interpolation** | Strictly recognizes `$var` and `$(expr)`. |
 | **Tiered Git Protocol** | All commits must follow Tier 1 (Lite NWBW) or Tier 2 (Full HIDC) via `commit_msg.txt`. |
+| **Versioning Policy** | Strict format `MAJOR.MINOR+PATCH "Codename"`, folklore codenames (Kreutzwald), package schema lock, and trinary status vectors `[Syntax/Parser . Typechecker . Codegen]`. |
 
 ---
 

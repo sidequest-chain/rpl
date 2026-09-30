@@ -411,10 +411,10 @@ Example:
 ```text
 0.2+66 "Tohtlane"
 ```
-* **`MAJOR`**: Major evolutionary stage of the language.
-* **`MINOR`**: Substantial capability release or newly integrated architectural subsystem (e.g., C99 transpiler backend `0.1`, Cranelift JIT engine `0.2`).
-* **`PATCH`**: Workspace build/patch counter or test milestone metric (e.g., `+66`).
-* **`"Codename"`**: Official release creature moniker derived from Estonian folklore heritage.
+* **`MAJOR.MINOR`**: Architectural generation and feature milestone (e.g., C99 transpiler backend `0.1`, Cranelift JIT engine `0.2`).
+* **`+PATCH`**: Monotonic build/patch/test count metadata (SemVer 2.0 build metadata compatible, e.g., `+66`).
+* **`"Codename"`**: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (*Eesti rahva ennemuistsed jutud*, 1866).
+* **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` denotes build metadata per SemVer 2.0, not a ternary truth value.
 
 CLI invocation (`rpl --version`) produces the structured identifier alongside the active host target triple and supported backends:
 ```text
@@ -423,34 +423,45 @@ Target: <target-triple> (backends: cranelift-jit, c99-zig)
 ```
 
 ### 9.2 Major Version Discipline
-* The **`0.x`** version cycle remains in effect throughout pre-bootstrap development until the compiler achieves full self-hosting in native RPL (**v1.0 "Põhja Konn"**).
-* Following v1.0, the `MAJOR` version number advances **exclusively** upon fundamental language breakages or backward-incompatible syntactic shifts (such as alterations to core scoping invariants or lexical delimiters).
+* The **`0.x`** version series remains in effect throughout pre-bootstrap development until the compiler achieves full self-hosting in native RPL (**v1.0 "Põhja Konn"**).
+* Bumping **`MAJOR`** (to 2.0, 3.0, etc.) is strictly forbidden unless there is an unavoidable, fundamental paradigm shift in core language mechanics.
 * Feature enhancements, runtime optimizations, and new backends must advance `MINOR` and `PATCH` without perturbing the `MAJOR` boundary.
 
-### 9.3 Folklore Codenames
-RPL compiler releases adopt official codenames inspired by Friedrich Reinhold Kreutzwald's Estonian folklore collections, mythical beings, and enchanted creatures (*Eesti rahva ennemuistsed jutud*):
+### 9.3 Folklore Codenames Registry
+RPL compiler releases adopt official codenames inspired by Friedrich Reinhold Kreutzwald's Estonian folklore collections, mythical beings, and enchanted creatures (*Eesti rahva ennemuistsed jutud*, 1866):
 
-| Version | Codename | Conceptual Significance |
+#### Core Milestone Releases
+| Version | Codename | Architectural Milestone / Significance |
 | :--- | :--- | :--- |
 | **0.1** | `"Puulane"` | Minimal wooden automaton; foundational portable C99 bootstrapping transpiler. |
 | **0.2** | `"Tohtlane"` | Birch-bark sprite; lightweight, zero-dependency in-memory Cranelift JIT execution engine. |
 | **0.3** | `"Kratt"` | Tireless domestic spirit; work-stealing concurrency runtime, thread scheduling, and channels. |
-| **0.4** | `"Tulihänd"` | Fiery dragon/treasure bearer; high-throughput memory optimizations and vectorization. |
-| **0.5** | `"Siil"` | The wise hedgehog advising Kalevipoeg to strike with the board edges; defensive verification, complete borrow/move checking, and exhaustive pattern coverage. |
+| **0.4** | `"Tulihänd"` | Fiery dragon/treasure bearer; high-throughput memory optimizations and standard collections. |
+| **0.5** | `"Siil"` | The wise hedgehog advising to strike with the board edges; defensive verification, complete borrow/move checking, and exhaustive pattern coverage. |
 | **1.0** | `"Põhja Konn"` | The mythical dragon of the North; milestone self-hosting compiler (`rpl-in-rpl`) emitting native machine code. |
 
-### 9.4 Library Schema Lock (Immutability Rule)
-Third-party modules and standard library packages published for RPL may adopt either:
-1. A **3-part schema**: `MAJOR.MINOR.PATCH` (e.g., `1.4.0`)
-2. A **4-part schema**: `MAJOR.MINOR.PATCH.BUILD` (e.g., `1.4.0.12`)
+#### Reserved Intermediate Milestones
+If project evolution or ecosystem requirements necessitate intermediate major releases prior to self-hosting (v1.0), the following folklore designations are reserved:
+
+| Version | Codename | Status |
+| :--- | :--- | :--- |
+| **0.6** | `"Kodukäija"` | *Reserved* (Discretionary pre-1.0 release if needed) |
+| **0.7** | `"Murueit"` | *Reserved* (Discretionary pre-1.0 release if needed) |
+| **0.8** | `"Libahunt"` | *Reserved* (Discretionary pre-1.0 release if needed) |
+| **0.9** | `"Tark mees taskus"` | *Reserved* (Discretionary pre-1.0 release if needed) |
+
+### 9.4 Package Schema Lock (Immutability Rule)
+Third-party modules, packages, and standard library modules published for RPL may adopt either:
+1. A **3-part schema**: `MAJOR.MINOR.PATCH` (e.g., `0.0.0` or `1.4.0`)
+2. A **4-part schema**: `MAJOR.MINOR.PATCH.BUILD` (e.g., `0.0.0.0` or `1.4.0.12`)
 
 **The Immutability Rule:**
-Once a package or library registers its version schema upon initial release, that schema is permanently locked. Switching between 3-part and 4-part schemas within the same package lineage is strictly prohibited to guarantee deterministic package resolution, dependency graphs, and tooling compatibility across all RPL distributions.
+Once an external package or library registers its version schema upon initial release, that schema is permanently locked. Altering the number of version components across releases is strictly forbidden to guarantee deterministic package resolution, dependency graphs, and tooling compatibility across all RPL distributions.
 
-### 9.5 Ternary Compilation Status Indicators
-In alignment with RPL's first-class ternary logic philosophy (`true`, `false`, `unknown`), compiler diagnostics and stage feedback report status using a structured 3-element vector:
+### 9.5 Trinary Diagnostic Feedback
+In alignment with RPL's first-class ternary logic philosophy (`true`, `false`, `unknown`), Trits (`+`, `?`, `-`) are used exclusively for compiler status vectors during build/check steps:
 ```text
-[Syntax . Types . Code]
+[Syntax/Parser . Typechecker . Codegen]
 ```
 Each position reflects the verification state of that compilation phase:
 * `+` : Phase succeeded and verified.
@@ -459,7 +470,7 @@ Each position reflects the verification state of that compilation phase:
 
 | Indicator | Phase Status | Description |
 | :---: | :---: | :--- |
-| `[+ + +]` | Full Success | Parsing verified, typechecking succeeded, and native machine code or binary was produced. |
+| `[+ + +]` | Complete Success | Parsing verified, typechecking succeeded, and native machine code or binary was produced. |
 | `[+ + ?]` | Verification Only | Parsing and typechecking verified; code generation deliberately bypassed (`rpl check`). |
-| `[+ - -]` | Type Error | Source syntax parsed cleanly, but static type checking failed; code generation aborted. |
-| `[- - -]` | Syntax Error | Lexer or parser encountered a grammar violation; analysis halted at frontend. |
+| `[+ - -]` | Typecheck Failure | Source syntax parsed cleanly, but static type checking failed; code generation aborted. |
+| `[- - -]` | Syntax Failure | Lexer or parser encountered a grammar violation; analysis halted at frontend. |

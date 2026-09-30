@@ -1,10 +1,13 @@
 # RPL (Running Pseudo Language)
 
+[![Version: 0.2+66 "Tohtlane"](https://img.shields.io/badge/version-0.2%2B66_%22Tohtlane%22-blue.svg)]()
 [![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL_1.2-blue.svg)](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)
-[![Build Status](https://img.shields.io/badge/tests-56%20passed-brightgreen.svg)]()
+[![Build Status](https://img.shields.io/badge/tests-67%20passed-brightgreen.svg)]()
 [![Language: Rust](https://img.shields.io/badge/rust-2021%20edition-orange.svg)]()
 
 > **Running Pseudo Language (RPL)** is a compiled, zero-garbage-collector systems programming language designed to eliminate the translation boundary between conceptual pseudocode and high-performance native execution.
+>
+> **Current Official Release:** `0.2+66 "Tohtlane"` (Target: host native with in-memory Cranelift JIT & C99 backends).
 
 ---
 
@@ -62,20 +65,50 @@ end
 
 ---
 
+## Versioning Policy & Diagnostic Indicators
+
+RPL enforces a strict release and diagnostic identity across all tooling and compilers:
+
+### Version Format
+```text
+MAJOR.MINOR+PATCH "Codename"
+```
+* **Current Version:** `0.2+66 "Tohtlane"`
+* **`MAJOR.MINOR`:** Architectural capability and subsystem milestone (`0.1` C99 transpiler, `0.2` in-memory Cranelift JIT).
+* **`+PATCH`:** Monotonic build/patch/test count metadata conforming to SemVer 2.0.
+* **`"Codename"`:** Mythological creatures from Friedrich Reinhold Kreutzwald's Estonian folk heritage (*Eesti rahva ennemuistsed jutud*, 1866):
+  - **Core Milestones:** `0.1 "Puulane"` → `0.2 "Tohtlane"` → `0.3 "Kratt"` → `0.4 "Tulihänd"` → `0.5 "Siil"` → `1.0 "Põhja Konn"` (self-hosting).
+  - **Reserved Intermediate Milestones (if needed before 1.0):** `0.6 "Kodukäija"`, `0.7 "Murueit"`, `0.8 "Libahunt"`, `0.9 "Tark mees taskus"`.
+* **Major Version Discipline:** The `0.x` series remains locked until self-hosting (`1.0 "Põhja Konn"`). Bumping `MAJOR` is strictly forbidden unless there is an unavoidable, fundamental paradigm shift in core language mechanics.
+* **Package Schema Lock:** Libraries permanently lock their schema as either 3-part (`0.0.0`) or 4-part (`0.0.0.0`) upon initial publish.
+
+### Trinary Diagnostic Feedback
+In alignment with RPL's ternary logic (`true`, `false`, `unknown`), compiler stages report diagnostic vectors using Trits:
+```text
+[Syntax/Parser . Typechecker . Codegen]
+```
+* `[+ + +]`: Complete success (e.g., `rpl build`, `rpl run`).
+* `[+ + ?]`: Check passed without codegen (e.g., `rpl check <file.rpl>`).
+* `[+ - -]`: Typecheck failure (syntax valid, type analysis rejected).
+* `[- - -]`: Lexer/Parser syntax failure (grammar error, compilation halted).
+
+---
+
 ## Current Project Status
 
-The project is structured as a modular Rust workspace and is actively transitioning from core language frontend verification into native code generation.
+The project is structured as a modular Rust workspace and has completed both Phase 1 (portable C99 transpiler) and Phase 2 (in-memory Cranelift JIT compiler).
 
 | Subsystem / Crate | Purpose | Status | Test Coverage |
 | :--- | :--- | :---: | :---: |
 | **[`crates/rpl_ast`](crates/rpl_ast)** | Strongly-typed AST, `Span` coordinates, Kleene `TritValue` | ✅ **Complete** | 9 tests |
 | **[`crates/rpl_lexer`](crates/rpl_lexer)** | Logos tokenizer, 28 keywords, string interpolation, newlines | ✅ **Complete** | 9 tests |
-| **[`crates/rpl_parser`](crates/rpl_parser)** | Recursive Descent (stmts) + Pratt parser (expressions) | ✅ **Complete** | 16 tests |
+| **[`crates/rpl_parser`](crates/rpl_parser)** | Recursive Descent (stmts) + Pratt parser (expressions) | ✅ **Complete** | 20 tests |
 | **[`crates/rpl_typechecker`](crates/rpl_typechecker)** | Semantic typing, trit exhaustiveness, move semantics | ✅ **Complete** | 13 tests |
-| **[`crates/rpl_codegen_c`](crates/rpl_codegen_c)** | High-performance C99 transpiler backend | ✅ **Complete (Phase 1)** | 6 tests |
-| **[`crates/rpl_cli`](crates/rpl_cli)** | Command-line interface (`rpl run`, `rpl build`, `rpl check`) | ✅ **Complete (Phase 1)** | 3 tests |
+| **[`crates/rpl_codegen_c`](crates/rpl_codegen_c)** | High-performance C99 transpiler backend | ✅ **Complete (Phase 1)** | 7 tests |
+| **[`crates/rpl_codegen_cranelift`](crates/rpl_codegen_cranelift)** | High-performance in-memory Cranelift JIT compiler | ✅ **Complete (Phase 2)** | 5 tests |
+| **[`crates/rpl_cli`](crates/rpl_cli)** | Command-line interface (`rpl run`, `rpl build`, `rpl check`) | ✅ **Complete (v0.2)** | 4 tests |
 
-**Overall Verification:** 56 passing tests across all crates, 0 clippy warnings.
+**Overall Verification:** 67 passing tests across all crates, 0 clippy warnings.
 
 ---
 
@@ -98,7 +131,8 @@ rpl/
 │   ├── rpl_parser/         # Recursive descent & Pratt parser
 │   ├── rpl_typechecker/    # Semantic analyzer and Kleene logic verifier
 │   ├── rpl_codegen_c/      # (Phase 1) C99 transpiler backend
-│   └── rpl_cli/            # (Phase 1) CLI driver binary
+│   ├── rpl_codegen_cranelift/ # (Phase 2) In-memory Cranelift JIT engine
+│   └── rpl_cli/            # CLI driver binary with JIT and C backends
 └── tests/
     └── fixtures/           # Official .rpl test files and grammar targets
 ```
