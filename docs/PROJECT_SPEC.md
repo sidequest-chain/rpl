@@ -1,6 +1,6 @@
 # RPL (Running Pseudo Language) — Technical Specification and Language Design
 
-Version: 0.1-draft  
+Version: 0.2+66 "Tohtlane"  
 File Extension: `.rpl`  
 CLI Tooling: `rpl` (`rpl run`, `rpl build`, `rpl check`)  
 Target Audience: Compiler engineering, LLM code generation, formal syntax verification, systems runtime.

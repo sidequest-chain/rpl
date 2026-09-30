@@ -17,6 +17,7 @@ Welcome to the **RPL Language Guide**! This guide is designed as an accessible, 
 9. [Custom Types & Collections](#9-custom-types--collections)
 10. [Concurrency Constructs](#10-concurrency-constructs)
 11. [Idiomatic Examples](#11-idiomatic-examples)
+12. [Tooling & CLI Execution](#12-tooling--cli-execution)
 
 ---
 
@@ -298,13 +299,21 @@ type ServerConfig:
     timeout: Float
 end
 
-// Instantiation:
+// Instantiation (call-style syntax):
 let config = ServerConfig(
     host: "127.0.0.1",
     port: 8080,
     ssl_enabled: true,
     timeout: 30.0
 )
+
+// Instantiation (block-style pseudocode syntax):
+let local_server = ServerConfig:
+    host: "0.0.0.0"
+    port: 3000
+    ssl_enabled: false
+    timeout: 10.0
+end
 
 // Accessing fields:
 let target_port = config.port
@@ -405,6 +414,54 @@ fn main():
     end
 end
 ```
+
+---
+
+## 12. Tooling & CLI Execution
+
+RPL provides a unified, cross-platform CLI tool named `rpl`:
+
+### 12.1 Interactive Execution (`rpl run`)
+By default, `rpl run` compiles and executes code directly in memory using the native Cranelift JIT engine without emitting intermediate files:
+
+```bash
+# Execute instantly via in-memory Cranelift JIT:
+rpl run examples/reaktor.rpl
+```
+
+To compile and run via the portable C99 pipeline:
+```bash
+rpl run --via-c examples/reaktor.rpl
+```
+
+### 12.2 Static Validation (`rpl check`)
+To verify syntax and type exhaustiveness without invoking code generation:
+
+```bash
+rpl check examples/reaktor.rpl
+# Output: [+ + ?] Check passed: examples/reaktor.rpl
+```
+
+### 12.3 Compiling Standalone Binaries (`rpl build`)
+Compile directly into an optimized executable or inspect the generated C99 source code:
+
+```bash
+# Compile native standalone binary (.exe on Windows, ELF on Linux):
+rpl build examples/reaktor.rpl -o reaktor.exe
+
+# Emit clean, human-readable C99 source:
+rpl build examples/reaktor.rpl --emit-c -o reaktor.c
+```
+
+### 12.4 Trinary Diagnostic Feedback
+In alignment with RPL's ternary logic (`true`, `false`, `unknown`), compiler stages report diagnostic vectors using Trits:
+```text
+[Syntax/Parser . Typechecker . Codegen]
+```
+* `[+ + +]`: Complete success (e.g. `rpl build`, `rpl run`).
+* `[+ + ?]`: Static validation passed, codegen bypassed (`rpl check`).
+* `[+ - -]`: Typecheck failure (syntax valid, semantic analysis failed).
+* `[- - -]`: Lexer/Parser syntax failure (grammar error, compilation halted).
 
 ---
 
