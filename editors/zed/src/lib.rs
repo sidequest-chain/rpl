@@ -14,7 +14,7 @@ impl zed::Extension for RplExtension {
     ) -> Result<Command> {
         let binary_path = worktree
             .which("rpl")
-            .unwrap_or_else(|| "d:\\Dev\\rpl\\target\\release\\rpl.exe".to_string());
+            .unwrap_or_else(|| "C:\\Program Files\\RunningPseudoLanguage\\rpl.exe".to_string());
 
         Ok(Command {
             command: binary_path,
