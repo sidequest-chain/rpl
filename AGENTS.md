@@ -21,6 +21,9 @@ This document establishes operational boundaries, engineering standards, and exe
    * All code comments, function documentation (docstrings), parser errors, and diagnostic output must be in **English**.
    * Conversational dialogue must match the user's language (mirror user prompt language: e.g., respond in Estonian when addressed in Estonian, English when addressed in English).
 
+4. **Public Documentation Scope:**
+   * Local workstation automation, personal scripts, or artifacts excluded via `.gitignore` (such as `tools/`, local aliases, or workstation configs) must **never** be documented in `CHANGELOG.md` or public release notes. Public documentation must solely record features, fixes, and tooling available to all repository consumers.
+
 ---
 
 ## 2. Workspace Architecture

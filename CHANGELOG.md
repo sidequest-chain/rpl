@@ -17,7 +17,6 @@ and this project adheres to the RPL Versioning Policy (`MAJOR.MINOR[+PATCH] "Cod
 ### Changed
 - **LSP Modularization:** Decoupled Language Server state management and protocol handlers into dedicated `crates/rpl_lsp/src/backend.rs` module.
 - **Git Commit Protocol:** Replaced rigid HIDC trailer schema with pragmatic "Not What, But Why" (NWBW) commit protocol in `AGENTS.md`, featuring optional LLM context blocks.
-- **Local Tools Ignore:** Added `tools/` directory to `.gitignore` to prevent workstation automation scripts from leaking upstream.
 
 ---
 
