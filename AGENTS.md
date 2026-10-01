@@ -94,56 +94,35 @@ If any step fails, the agent must document the root cause before applying the mi
 
 ---
 
-## 5. Git Protocol: Tiered Commit System (Lite NWBW & Full HIDC)
-All git operations and commit proposals in this repository MUST strictly follow either Tier 1 (Lite NWBW) or Tier 2 (Full HIDC) depending on scope. Commit messages MUST be written in English. Do not write shallow diff summaries.
+## 5. Git Protocol: "Not What, But Why" (NWBW) Commit System
+All git operations and commit proposals in this repository follow the **"Not What, But Why" (NWBW)** standard built on Conventional Commits. Commit messages MUST be written in English. Do not write shallow diff summaries.
 
-### 5.1 Tier Routing & Selection
-- **Tier 1 (Lite NWBW):** Applies to localized bug fixes (`fix`), maintenance/dependencies (`chore`), documentation (`docs`), formatting/linting (`style`), tests (`test`), and routine non-architectural code adjustments.
-- **Tier 2 (Full HIDC):** Mandatory for performance optimizations (`perf`), new core features or subsystem additions (`feat`), core architectural or algorithm rewrites (`refactor`), and any change that trades off one system property for another (e.g., latency vs. memory footprint).
+### 5.1 Core Philosophy
+- **Header:** Conventional Commits standard (`feat`, `fix`, `perf`, `refactor`, `build`, `chore`, `docs`, `test`). Format: `<type>(<scope>): <short imperative title, max 50-72 chars>`
+- **Body (The Why):** Focus strictly on motivation, operational reasoning, and system impact. Explain **WHY** this change was made, what bug or limitation triggered it, and why this specific solution was chosen. Never summarize raw code diffs or list files modified.
 
-### 5.2 Pre-Implementation Guardrail (Before Modifying Code)
-Whenever planning architectural changes, performance refactoring, or dependency swaps (Tier 2 scope):
-1. Check existing commit trailers for the target subsystem/files using:
-   ```bash
-   git log -n 10 --format="%h %s%n%(trailers:key=Invariant,key=Rejected,key=Reconsider-When)" -- <path>
-   ```
-2. **Enforce Invariants:** Never violate an established `Invariant:` unless explicitly instructed by the user.
-3. **Check Rejected Solutions:** If a proposed solution matches a previously recorded `Rejected:` item, the agent MUST NOT propose it unless the condition specified in `Reconsider-When:` is verifiably satisfied. Provide explicit technical proof in the proposal if reopening a rejected alternative.
+### 5.2 Commit Message Schemas
 
-### 5.3 Commit Message Schemas
-
-#### Tier 1: Lite NWBW Schema (Standard & Fixes)
+#### Standard NWBW Schema (Default)
+Used for all standard commits (features, bug fixes, refactoring, maintenance, docs):
 ```text
 <type>(<scope>): <short imperative title, max 50-72 chars>
 
-<The 1-3 sentences explaining WHY this change was made, what limitation/bug triggered it, and why it was necessary. Never summarize code diffs here.>
-```
-*Optional Trailer:* If the fix establishes or preserves an operational boundary against regressions:
-```text
-Invariant: <Technical constraint or rule preventing future regression>
+<1-3 sentences explaining WHY this change was made, what limitation/bug triggered it, and its system impact. Never summarize code diffs here.>
 ```
 
-#### Tier 2: Full HIDC Schema (Architectural & Performance)
+#### Context-Enriched Variant (Optional — LLM & Maintainer Context)
+Whenever the LLM agent or human developer judges that future development, architectural navigation, or future LLM agents will benefit from additional non-obvious context, technical constraints, or edge-case rationale, append an optional context block. **If additional context is not strictly needed or valuable, omit this block.**
+
 ```text
 <type>(<scope>): <short imperative title, max 50-72 chars>
 
-<Problem / Context: 1-3 sentences explaining WHY this change was made, what architectural limitation existed, and system impact. Never summarize code diffs here.>
+<1-3 sentences explaining WHY this change was made, what limitation/bug triggered it, and its system impact.>
 
-Hypothesis: <Measurable or verifiable expected outcome from this change>
-Invariant: <Technical architectural boundary, interface rule that future changes must not break>
-Rejected: <Alternative approach considered> -> <Concrete technical reason why it was disqualified>
-Reconsider-When: <Specific future condition, hardware release, or upstream trigger that would make the rejected alternative viable again>
+Context: <Detailed architectural background, non-obvious design choices, subsystem invariants, or technical guidance specifically to assist future autonomous LLM agents and maintainers during subsequent development.>
 ```
 
-### 5.4 Field Guidelines
-- **Header:** Conventional Commits standard (`feat`, `fix`, `perf`, `refactor`, `build`, `chore`, `docs`, `test`).
-- **Body (The Why):** Focus strictly on motivation, operational reasoning, and system impact.
-- **Hypothesis:** Must be falsifiable or verifiable via tests/benchmarks (e.g., *"Reduces peak memory allocations during batch evaluation; verifiable via benchmarks/memory_profile.py"*). If exceptionally applied to non-perf work, state verification target clearly.
-- **Invariant:** Explicit rule for future developers and AI agents (e.g., *"All compute kernels must remain deterministic across seed resets"*).
-- **Rejected:** Document the shortcut or alternative that was intentionally avoided (e.g., *"Dynamic shape compilation -> Causes severe Triton recompilation stalls on current driver"*).
-- **Reconsider-When:** The exact trigger that invalidates the rejection (e.g., *"Upstream Triton issue #4582 is merged and tagged in PyTorch release"*).
-
-### 5.5 Execution Standard (Writing the Commit)
+### 5.3 Execution Standard (Writing the Commit)
 When instructed to commit, write the structured commit message to a temporary file: `commit_msg.txt`.
 
 Commit using the file reference:
@@ -156,7 +135,7 @@ Clean up the temporary file immediately after committing:
 rm commit_msg.txt
 ```
 
-**Rule:** Do NOT run interactive `git commit -m` with inline multi-line escaped text to prevent shell quote truncation and lost trailers.
+**Rule:** Do NOT run interactive `git commit -m` with inline multi-line escaped text to prevent shell quote truncation and lost formatting.
 
 ---
 

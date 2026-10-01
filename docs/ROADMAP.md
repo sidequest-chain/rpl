@@ -156,5 +156,5 @@ To balance rapid cross-platform deployment (Windows & Linux) with instantaneous 
 
 1. **Active Work Selection:** Development initiatives are selected strictly from the top of the **P1 (Immediate Focus)** tier without premature version locking.
 2. **Version Synchronization:** When milestones complete, the monotonic patch or minor milestone codename is bumped in `VERSION`, `Cargo.toml`, and registered in `AGENTS.md`.
-3. **Documenting Architectural Changes:** Architectural decisions and rejected alternatives must follow the Tier 2 Full HIDC commit protocol and be synchronized across documentation.
+3. **Documenting Architectural Changes:** Architectural decisions, rationale, and design choices must follow the NWBW commit protocol and be synchronized across documentation.
 4. **Parking Protocol:** Unscheduled ideas or heavy toolchain requirements that arise during development are immediately cataloged in Section 3.5 (Deferred Parking Lot) with clear "Why Deferred" and "Unblocking Trigger" criteria.
