@@ -1,6 +1,12 @@
 # CODE_MAP — RPL Architecture & Codebase Navigation Index
 
 > **Purpose:** This document is an optimized index and structural map for LLM agents (Claude Code, Cursor, Zed AI, Antigravity) and human developers to rapidly understand module boundaries, data flows, type definitions, and invariants without expensive full-repo scans.
+>
+> **Companion Guides:**
+> - [docs/COMPILER_CAPABILITIES.md](file:///d:/Dev/rpl/docs/COMPILER_CAPABILITIES.md) — Authoritative implementation status, 100% working feature matrix, and partner LLM extension prompts.
+> - [docs/LANGUAGE_GUIDE.md](file:///d:/Dev/rpl/docs/LANGUAGE_GUIDE.md) — Hands-on tutorial and developer reference.
+> - [docs/PROJECT_SPEC.md](file:///d:/Dev/rpl/docs/PROJECT_SPEC.md) — Long-term technical specification and formal grammar.
+> - [docs/ROADMAP.md](file:///d:/Dev/rpl/docs/ROADMAP.md) — Priority-tiered development roadmap (P0–P4).
 
 ---
 

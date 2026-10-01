@@ -16,6 +16,8 @@ This document establishes operational boundaries, engineering standards, and exe
    * Do not remove working debug or logging statements (`println!`, `eprintln!`, `dbg!`).
    * Do not refactor functional code or rewrite components merely for style unless explicitly commanded.
    * Do not alter existing code comments unless the underlying implementation changed and rendered the comment factually false.
+   * **Prohibition of Heredocs & Raw Shell Overwrites:** Never use bash heredocs (`cat << 'EOF'`), raw PowerShell string redirection (`@" ... "@ > file`), or `sed` to edit, patch, or overwrite source files or documentation. All modifications must be made surgically using dedicated file editing tools.
+   * **No Blind Overwrites:** Never replace a large or complex file with a truncated placeholder or rewritten skeleton when adjusting a localized logic block. Read surrounding lines first and modify only the targeted tokens.
 
 3. **Language Rules:**
    * All code comments, function documentation (docstrings), parser errors, and diagnostic output must be in **English**.
@@ -27,6 +29,11 @@ This document establishes operational boundaries, engineering standards, and exe
 5. **Strict Git Discipline (NO AUTO-GIT & USER-ONLY PUSH):**
    * **CRITICAL INVARIANT - NO AUTO-GIT:** **Never stage, commit, or execute Git commands (`git add`, `git commit`, etc.) automatically without explicit user confirmation.** Always present the proposed changes, verify tests pass, and wait for the user's explicit instruction before executing any git actions.
    * **CRITICAL INVARIANT - NO REMOTE PUSH (USER-ONLY PUSH):** **Never execute `git push` or attempt remote deployment.** Remote pushing to git remotes is strictly reserved for the human user ("pushes are always executed manually by the user").
+
+6. **Code Map Protocol & Anti-Browsing Discipline (`docs/CODE_MAP.md`):**
+   * **Consult `docs/CODE_MAP.md` First:** Before inspecting arbitrary files or running wide workspace searches, autonomous agents must consult `docs/CODE_MAP.md` to identify the responsible crate, module, and data flow.
+   * **Surgical Inspection Only:** Files may only be opened when they need immediate editing or when a specific internal implementation detail must be verified. Blind scanning across crates is prohibited.
+   * **Continuous Currency (Definition of Done):** Whenever new AST nodes, types, compiler passes, or CLI commands are added or modified, the agent must update `docs/CODE_MAP.md` as part of the task completion (Zero Drift).
 
 ---
 
@@ -81,37 +88,68 @@ The repository is structured as a modular Rust workspace:
 
 ---
 
-## 4. Verification Workflow
+## 4. Principles for Safe Innovation
 
-Before completing any task, an agent must run and satisfy this verification pipeline:
+RPL encourages rapid technical evolution across language phases without sacrificing compiler stability. When introducing new grammar, AST structures, or execution engines, follow these principles:
+
+1. **Additive Innovation (Do Not Break Working Paths):**
+   * Implement new features as new modules, AST variants, or compiler flags alongside existing code.
+   * Keep the active, verified execution path (e.g., C99 transpiler or Cranelift JIT) working until the new capability is fully verified with test fixtures.
+
+2. **Architectural Proposal First:**
+   * Before undertaking cross-crate refactorings (e.g. altering `rpl_ast` node representations that propagate across `rpl_parser`, `rpl_typechecker`, and both codegen backends), outline the architecture, trade-offs, and invariants to the human developer and obtain alignment first.
+
+3. **Performance & Resource Footprint:**
+   * Keep compilation fast (<10 ms target for script-sized programs in JIT mode), avoid unnecessary heap allocations during lexing and Pratt expression parsing, and maintain memory efficiency.
+
+---
+
+## 5. Mandatory Pre-Verification Checklist
+
+Every autonomous agent must execute and satisfy this full checklist before proposing completion of any task or presenting changes to the user:
 
 1. **Compilation Check:**
    ```bash
    cargo check --workspace
    ```
+   *Must complete with zero errors.*
+
 2. **Workspace Test Suite:**
    ```bash
    cargo test --workspace
    ```
+   *Must pass with zero failures.*
+
 3. **Linter and Static Analysis:**
    ```bash
    cargo clippy --workspace -- -D warnings
    ```
-4. **Explicit Confirmation for Git Actions (User-Only Push):**
-   Present test results and summary to the user. Await explicit user confirmation before any `git add` or `git commit`. Never commit unsolicited, and never execute `git push` (remote pushes are strictly manual by the user).
+   *Must pass with zero warnings.*
+
+4. **Diff Review:**
+   ```bash
+   git diff
+   ```
+   *Verify that no unrelated files, comments, or debug statements were inadvertently modified.*
+
+5. **Code Map Synchronization (Definition of Done):**
+   *Verify that any new or modified compiler modules, AST variants, or CLI commands are fully reflected in `docs/CODE_MAP.md`.*
+
+6. **Explicit Confirmation for Git Actions (User-Only Push):**
+   *Present test results and summary to the user. Await explicit user confirmation before any `git add` or `git commit`. Never commit unsolicited, and never execute `git push` (remote pushes are strictly manual by the user).*
 
 If any verification step fails, the agent must document the root cause before applying the minimal corrective diff.
 
 ---
 
-## 5. Git Protocol: "Not What, But Why" (NWBW) Commit System
+## 6. Git Protocol: "Not What, But Why" (NWBW) Commit System
 All git operations and commit proposals in this repository follow the **"Not What, But Why" (NWBW)** standard built on Conventional Commits. Commits are created **strictly upon explicit instruction from the user**. Commit messages MUST be written in English. Do not write shallow diff summaries.
 
-### 5.1 Core Philosophy
+### 6.1 Core Philosophy
 - **Header:** Conventional Commits standard (`feat`, `fix`, `perf`, `refactor`, `build`, `chore`, `docs`, `test`). Format: `<type>(<scope>): <short imperative title, max 50-72 chars>`
 - **Body (The Why):** Focus strictly on motivation, operational reasoning, and system impact. Explain **WHY** this change was made, what bug or limitation triggered it, and why this specific solution was chosen. Never summarize raw code diffs or list files modified.
 
-### 5.2 Commit Message Schemas
+### 6.2 Commit Message Schemas
 
 #### Standard NWBW Schema (Default)
 Used for all standard commits (features, bug fixes, refactoring, maintenance, docs):
@@ -132,7 +170,7 @@ Whenever the LLM agent or human developer judges that future development, archit
 Context: <Detailed architectural background, non-obvious design choices, subsystem invariants, or technical guidance specifically to assist future autonomous LLM agents and maintainers during subsequent development.>
 ```
 
-### 5.3 Execution Standard (Writing the Commit)
+### 6.3 Execution Standard (Writing the Commit)
 When committing, execute `git commit` directly using multiple `-m` arguments to separate the title from the body (and context):
 
 ```bash
@@ -148,7 +186,7 @@ Do not create intermediary temporary files (such as `commit_msg.txt`) when stagi
 
 ---
 
-## 6. Versioning Policy & Release Identity
+## 7. Versioning Policy & Release Identity
 All agents and contributors must strictly enforce the following versioning discipline:
 
 1. **Format:** `MAJOR.MINOR[+PATCH] "Codename"` (e.g., base `0.2 "Tohtlane"`, or refined variant `0.2+1 "Tohtlane"`).
