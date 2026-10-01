@@ -1,4 +1,8 @@
-# IDE Setup & Integration Guide (RPL Language Server)
+# IDE Setup & Integration Guide (docs/user/IDE_SETUP.md)
+
+> **Document Role:** Editor Tooling & LSP Configuration Guide  
+> **Target Audience:** RPL Developers & Contributors (**Tooling Setup**)  
+> **Active Milestone:** 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
 
 This guide explains how to configure **Zed**, **Antigravity IDE**, and **Visual Studio Code** to use the official Running Pseudo Language (RPL) Language Server Protocol (`rpl lsp`) for real-time syntax checking, Kleene ternary type diagnostics, and hover documentation.
 
@@ -31,7 +35,7 @@ RPL provides a native Zed extension in `editors/zed/` compiled to WebAssembly (`
 3. Type and select: **`zed: install dev extension`**.
 4. In the folder picker dialog, select the repository's `editors/zed` directory:
    ```text
-   D:\Dev\rpl\editors\zed
+   <path-to-repo>\editors\zed
    ```
 5. Zed immediately activates language recognition for `.rpl` files, sets up brackets and comments, and connects to `rpl lsp`.
 
@@ -51,22 +55,22 @@ The RPL repository includes an extension in `editors/code/` providing:
 
 ### Installation Steps
 
-Link or copy the `editors/code` folder into your editor's extension directory:
+Link or copy the `editors/code` folder into your editor's extension directory (from the repository root):
 
 #### For Antigravity IDE:
 * **Windows (PowerShell as Administrator or with Developer Mode):**
   ```powershell
-  New-Item -ItemType SymbolicLink -Path "$HOME\.antigravity-ide\extensions\rpl" -Target "D:\Dev\rpl\editors\code"
+  New-Item -ItemType SymbolicLink -Path "$HOME\.antigravity-ide\extensions\rpl" -Target "$PWD\editors\code"
   ```
 * **Or simple copy without symlinks:**
   ```powershell
-  Copy-Item -Recurse -Path "D:\Dev\rpl\editors\code" -Destination "$HOME\.antigravity-ide\extensions\rpl"
+  Copy-Item -Recurse -Path "$PWD\editors\code" -Destination "$HOME\.antigravity-ide\extensions\rpl"
   ```
 
 #### For VS Code:
 * **Windows (PowerShell):**
   ```powershell
-  New-Item -ItemType SymbolicLink -Path "$HOME\.vscode\extensions\rpl" -Target "D:\Dev\rpl\editors\code"
+  New-Item -ItemType SymbolicLink -Path "$HOME\.vscode\extensions\rpl" -Target "$PWD\editors\code"
   ```
 * **Linux / macOS:**
   ```bash

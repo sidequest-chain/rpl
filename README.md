@@ -1,6 +1,6 @@
 # RPL (Running Pseudo Language)
 
-[![Milestone: 0.2 "Tohtlane"](https://img.shields.io/badge/milestone-0.2_%22Tohtlane%22-blue.svg)](docs/ROADMAP.md)
+[![Milestone: 0.2 "Tohtlane"](https://img.shields.io/badge/milestone-0.2_%22Tohtlane%22-blue.svg)](docs/spec/ROADMAP.md)
 [![Active Release: see VERSION](https://img.shields.io/badge/release-see%20VERSION-informational.svg)](VERSION)
 [![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL_1.2-blue.svg)](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)
 [![Build Status](https://img.shields.io/badge/tests-74%20passed-brightgreen.svg)]()
@@ -122,10 +122,16 @@ rpl/
 ├── LICENSE                 # European Union Public Licence (EUPL-1.2)
 ├── Cargo.toml              # Root workspace manifest
 ├── docs/
-│   ├── CODE_MAP.md         # Comprehensive code navigation map for LLMs and developers
-│   ├── LANGUAGE_GUIDE.md   # Practical language guide and tutorial for developers
-│   ├── PROJECT_SPEC.md     # Official language specification and grammar rules
-│   └── ROADMAP.md          # Architectural evolution roadmap and hybrid execution model
+│   ├── README.md           # Documentation taxonomy and navigation index
+│   ├── agent/              # Tier 1: Ground Truth for autonomous LLM agents and compiler devs
+│   │   ├── CODE_MAP.md     # Architectural index and module navigation
+│   │   └── COMPILER_CAPABILITIES.md # Ground truth working feature matrix vs limitations
+│   ├── spec/               # Tier 2: Target formal specification, grammar, and roadmap (Vision / RFC)
+│   │   ├── PROJECT_SPEC.md # Formal language specification and syntax targets
+│   │   └── ROADMAP.md      # Strategic milestone evolution (0.1 Puulane → 1.0 Põhja Konn)
+│   └── user/               # Tier 3: Practical guides and developer handbook
+│       ├── LANGUAGE_GUIDE.md # Practical language guide and tutorial for 0.2
+│       └── IDE_SETUP.md    # Editor setup guide (Zed, VS Code, AGY) for rpl lsp
 ├── crates/
 │   ├── rpl_ast/            # AST data structures
 │   ├── rpl_lexer/          # Tokenizer & lexer
@@ -230,12 +236,20 @@ cargo clippy --workspace -- -D warnings
 
 ## Documentation
 
-* **[ROADMAP.md](docs/ROADMAP.md):** Architectural evolution roadmap, hybrid execution model (C99 + Cranelift JIT), and self-hosting strategy.
-* **[LANGUAGE_GUIDE.md](docs/LANGUAGE_GUIDE.md):** Practical language guide and tutorial covering syntax, `Trit` logic, collections, and examples.
-* **[PROJECT_SPEC.md](docs/PROJECT_SPEC.md):** Complete technical specification, formal grammar, type system semantics, and language examples.
-* **[IDE_SETUP.md](docs/IDE_SETUP.md):** Editor setup guide for Zed, Antigravity IDE, and VS Code using the built-in RPL Language Server (`rpl lsp`).
-* **[CODE_MAP.md](docs/CODE_MAP.md):** Detailed module index, types registry, invariant cheat sheet, and extension guidelines for LLM agents and contributors.
-* **[AGENTS.md](AGENTS.md):** Operating rules and the Tiered Commit System (Lite NWBW & Full HIDC) required for autonomous agents.
+RPL documentation is structured into three decoupled tiers based on target audience:
+
+### 1. Compiler Ground Truth & LLM Navigation (docs/agent/)
+* **[docs/agent/COMPILER_CAPABILITIES.md](docs/agent/COMPILER_CAPABILITIES.md):** Absolute Single Source of Truth for what 100% compiles, runs, and passes tests in the active compiler.
+* **[docs/agent/CODE_MAP.md](docs/agent/CODE_MAP.md):** Living architectural symbol map, module index, and fast-navigation matrix. Mandatory first read for LLM agents.
+
+### 2. Language Vision & Strategic Milestones (docs/spec/)
+* **[docs/spec/PROJECT_SPEC.md](docs/spec/PROJECT_SPEC.md):** Formal language specification, target grammar rules, and syntax vision (includes future roadmap constructs).
+* **[docs/spec/ROADMAP.md](docs/spec/ROADMAP.md):** Architectural evolution roadmap, hybrid execution model (C99 + Cranelift JIT), and self-hosting strategy.
+
+### 3. End-User Guides & Tooling (docs/user/)
+* **[docs/user/LANGUAGE_GUIDE.md](docs/user/LANGUAGE_GUIDE.md):** Practical developer guide and tutorial for writing code on active milestone 0.2 "Tohtlane".
+* **[docs/user/IDE_SETUP.md](docs/user/IDE_SETUP.md):** Editor setup guide for Zed, Antigravity IDE, and VS Code using the built-in RPL Language Server (`rpl lsp`).
+* **[AGENTS.md](AGENTS.md):** Operating rules, NWBW commit protocol, and strict verification invariants for autonomous agents.
 
 ---
 

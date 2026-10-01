@@ -1,9 +1,14 @@
-# RPL — STRATEGIC ARCHITECTURE ROADMAP & EVOLUTION MATRIX (ROADMAP.md)
+# RPL — STRATEGIC ARCHITECTURE ROADMAP & EVOLUTION MATRIX (docs/spec/ROADMAP.md)
 Document ID: RPL-ROAD-2026-V2  
+Role: Strategic Milestone Evolution & Phased Architecture Plan (Vision / Roadmap)  
+Target Audience: Maintainers, Architects & Strategic Contributors  
+Active Milestone: 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
 Classification: PUBLIC OPEN SOURCE / EUPL-1.2  
 Status: ACTIVE ROADMAP  
-Author: RPL Core Compiler Team  
-Active Milestone: 0.2 "Tohtlane" (Active patch: see [VERSION](file:///D:/Dev/rpl/VERSION))  
+
+> [!IMPORTANT]
+> **ROADMAP VS. ACTIVE GROUND TRUTH:**  
+> This roadmap outlines the strategic phases from milestone 0.1 through 1.0 self-hosting. Features listed under future milestones (e.g. 0.3 "Kratt" concurrency, 0.4 "Tulihänd" collections, 0.5 "Siil" borrow checker) are strictly planned future work. For the active capability matrix of what works today, consult [docs/agent/COMPILER_CAPABILITIES.md](../agent/COMPILER_CAPABILITIES.md).
 
 ---
 

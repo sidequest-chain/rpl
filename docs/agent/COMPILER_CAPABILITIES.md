@@ -1,7 +1,10 @@
-# RPL Compiler Capabilities & Implementation Status
+# RPL Compiler Capabilities & Implementation Status (docs/agent/COMPILER_CAPABILITIES.md)
 
-> **Active Milestone:** 0.2 "Tohtlane" (Active patch: see [VERSION](file:///D:/Dev/rpl/VERSION))  
-> **Purpose:** Authoritative technical snapshot of currently implemented, working compiler features versus roadmap items. Designed specifically for LLM agents, compiler developers, and architectural discussions to propose well-scoped language extensions without drifting from the active codebase.
+> **Document Role:** Compiler Ground Truth & Active Capability Matrix  
+> **Target Audience:** Autonomous AI Agents & Compiler Developers (**Ground Truth Authority**)  
+> **Active Milestone:** 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
+> **Authority Level:** **Absolute SSoT** for what language constructs 100% compile, run, and pass test suites today.  
+> **Boundary Notice:** For long-term syntax vision and planned features (e.g. channels, `Result`, arrays), consult [docs/spec/PROJECT_SPEC.md](../spec/PROJECT_SPEC.md). For end-user tutorials, consult [docs/user/LANGUAGE_GUIDE.md](../user/LANGUAGE_GUIDE.md).
 
 ---
 
@@ -54,8 +57,10 @@ The following language constructs are fully implemented across the parser, typec
 - **Affine / Move Semantics:** Typechecker tracks value moves and statically rejects use-after-move.
 
 ### 2.4. Control Flow & Pattern Matching
-- **Conditional Branching:** `if condition: ... else: ... end`.
+- **Conditional Branching:** `if condition: ... else if: ... else: ... end`.
 - **Sequential Iteration:** `for item in start..end: ... end` (supports inclusive/exclusive ranges).
+  > [!WARNING]
+  > **`while` loops are NOT implemented in milestone 0.2.** The `while` keyword is recognized by the lexer, but neither the AST (`rpl_ast::Stmt`), parser (`rpl_parser::stmt`), nor codegen backends support `while`. Use `for i in start..end:` with `if`/`match` state flags for loops in 0.2.
 - **Pattern Matching (`match`):**
   - Literal patterns (`case 42:`, `case true:`, `case unknown:`).
   - Wildcard pattern (`case _:`).
@@ -113,6 +118,7 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
 | **Mutable Variables (`let mut`)** | ✅ Full | ✅ Enforced | ✅ Full (`int64_t b = ...`) | ✅ Full (Cranelift Var) | ✅ Tokens |
 | **Use-After-Move Check** | ✅ Full | ✅ Rejection | N/A (Static check) | N/A (Static check) | ✅ Diagnostics |
 | **Range For Loops (`1..5`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
+| **`while` Loops (`while cond:`)** | ⚠️ Lexer only | ❌ Not in AST | ❌ Not in parser | ❌ Not supported | ❌ None |
 | **Struct Declaration & Access** | ✅ Full | ✅ Type verified | ✅ Full (`typedef struct`) | ✅ Full (Offset read) | ✅ Hover & Tokens |
 | **Struct Block Init (`Point: ... end`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
 | **Named Functions (`fn name(...)`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_fn`) | ✅ Full | ✅ Full |
@@ -125,10 +131,14 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
 | **System Stream Handle (`File`)** | ✅ Full | ✅ Full (Opaque) | ✅ Full (`rpl_file_t`) | ✅ Full (`*mut JitFile`) | ✅ Hover & Tokens |
 | **Stream File Operations (`open_file`, `read_line`, `write_line`)** | ✅ Full | ✅ Full | ✅ Full (`fopen`/`fgets`/`fputs`) | ✅ Full (`rpl_jit_*`) | ✅ Hover |
 | **Affine Stream Closing (`close_file`)** | ✅ Full | ✅ Enforced Move | ✅ Full (`fclose`) | ✅ Full (`rpl_jit_close_file`) | ✅ Hover & Move Err |
+| **`assert(cond: Bool)`** | ❌ Not in lexer/parser | ❌ Not in `env.rs` | ❌ Not in runtime | ❌ Not supported | ❌ None |
+| **`len(val: String)`** | ❌ Not in lexer/parser | ❌ Not in `env.rs` | ❌ Not in runtime | ⚠️ Declared symbol only (not wired) | ❌ None |
 | **Lambdas / Closures (`=>`)** | ✅ Parsed | ⚠️ Untyped expr only | ⚠️ Prototype | ⚠️ Prototype | ✅ Tokens |
 | **Callable Variables (`let f = ...; f()`)** | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ TypeError |
 | **List Literals (`[1, 2, 3]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |
 | **Index Access (`arr[i]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |
+| **`Result[T, E]` / `Ok` / `Error`** | ✅ Parsed | ⚠️ Permissive stub | ❌ Not supported | ❌ Undefined Symbol | ✅ Tokens |
+| **`Map[K, V]`** | ✅ Parsed | ⚠️ Permissive stub | ❌ Not supported | ❌ Not supported | ✅ Tokens |
 | **`spawn: ... end`** | ✅ Parsed | ⚠️ AST only | ❌ Phase 3 "Kratt" | ❌ Phase 3 "Kratt" | ✅ Tokens |
 | **`channel: ... end`** | ✅ Parsed | ⚠️ AST only | ❌ Phase 3 "Kratt" | ❌ Phase 3 "Kratt" | ✅ Tokens |
 | **`parallel for`** | ✅ Parsed | ⚠️ AST only | ❌ Phase 3 "Kratt" | ❌ Phase 3 "Kratt" | ✅ Tokens |

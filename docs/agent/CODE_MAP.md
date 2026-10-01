@@ -1,5 +1,7 @@
-# RPL — ARCHITECTURAL SYMBOL & CODE MAP (docs/CODE_MAP.md)
+# RPL — ARCHITECTURAL SYMBOL & CODE MAP (docs/agent/CODE_MAP.md)
 Document ID: RPL-CODE-MAP-2026-V1  
+Role: Living Codebase Index & Architectural Topography (Ground Truth)  
+Target Audience: Autonomous AI Agents & Compiler Engineers (Ground Truth)  
 Scope: Centralized Single Source of Truth for Codebase Symbols, Signatures & Dependencies  
 Author: RPL Core Compiler Team  
 Status: ACTIVE & MANDATORY REFERENCE  
@@ -97,9 +99,16 @@ Quick lookup matrix for surgical navigation. Agents should consult this table to
 | `crates/rpl_cli/tests/cli_tests.rs` | `rpl_cli` | End-to-end integration tests, dynamic VERSION assertion, and official fixture suite runner. | Test Suite (8 tests) | [View 3.8](#38-crate-rpl_cli) |
 | `tests/fixtures/io_complete.rpl` | Fixtures | Comprehensive test fixture for Two-Tier I/O (Layer 1 atomic + Layer 2 streams). | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `tests/fixtures/io_use_after_close.rpl` | Fixtures | Negative compile-time test fixture verifying affine ownership rejection (`Use of moved value`). | Negative Test Script | [View 3.9](#39-test-fixtures--official-examples) |
-| `tests/fixtures/control_flow.rpl` | Fixtures | Test fixture verifying `if/else`, `while`, `for in ..`, and `match`. | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
+| `tests/fixtures/control_flow.rpl` | Fixtures | Test fixture verifying `if/else`, range `for in ..`, and `match`. | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `tests/fixtures/functions_pipeline.rpl` | Fixtures | Test fixture verifying function declarations, pipe operator (`|>`), and lambdas. | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `examples/daemon_logger.rpl` | Examples | Production-style system daemon demonstrating stream logging and telemetry. | Example Script | [View 3.9](#39-test-fixtures--official-examples) |
+| `docs/README.md` | Docs Index | Complete documentation system index and decoupled 3-tier taxonomy. | Navigation Index | [View Docs](../README.md) |
+| `docs/agent/CODE_MAP.md` | Ground Truth | Living codebase index, symbols, and module topography. | Architectural Map | [View 1.1](#11-high-level-navigation) |
+| `docs/agent/COMPILER_CAPABILITIES.md` | Ground Truth | Authoritative matrix of what 100% compiles & runs today. | Capability Matrix | [View Docs](COMPILER_CAPABILITIES.md) |
+| `docs/spec/PROJECT_SPEC.md` | Spec / RFC | Formal grammar, syntax targets, and long-term language design vision. | Specification | [View Docs](../spec/PROJECT_SPEC.md) |
+| `docs/spec/ROADMAP.md` | Vision / RFC | Strategic evolution and priority-tiered roadmap (0.1 → 1.0). | Strategic Plan | [View Docs](../spec/ROADMAP.md) |
+| `docs/user/LANGUAGE_GUIDE.md` | User Guide | Hands-on tutorial and programming guide for active 0.2 milestone. | User Guide | [View Docs](../user/LANGUAGE_GUIDE.md) |
+| `docs/user/IDE_SETUP.md` | User Tooling | Language Server Protocol (`rpl lsp`) editor configuration guide. | Setup Guide | [View Docs](../user/IDE_SETUP.md) |
 | `VERSION` | Root SSoT | Sole Single Source of Truth for the active release version string. | `0.2+4 "Tohtlane"` | [View 6](#6-language-invariants--documentation-taxonomy-matrix) |
 | `CHANGELOG.md` | Root Ledger | Chronological ledger of past releases and changes. | Release History | [View 6](#6-language-invariants--documentation-taxonomy-matrix) |
 | `AGENTS.md` | Root Rules | Mandatory agent directives, operational boundaries, and verification checklists. | Agent Directives | [View 6](#6-language-invariants--documentation-taxonomy-matrix) |
@@ -186,7 +195,7 @@ rpl_lexer
     - `InterpolationFragment`: `Literal(String)` and `Expr(Box<Expr>)` for `$var` / `$(expr)`.
   - `src/stmt.rs`:
     - `Program`: Root AST node containing `Vec<Stmt>`.
-    - `Stmt`: `VarDecl`, `Assign`, `FnDecl`, `If`, `Match`, `For`, `While`, `Return`, `Expr`, `Spawn`.
+    - `Stmt`: `Let`, `MutLet`, `Assign`, `FnDecl`, `TypeDecl`, `If`, `Match`, `For`, `ParallelFor`, `Spawn`, `Return`, `Expr`. (Note: `while` is not yet an AST statement).
     - `Pattern`: Match case patterns including literals, identifiers, wildcards, and Trit variants.
   - `src/error.rs`: `AstError` error definitions via `thiserror`.
 
@@ -240,7 +249,7 @@ rpl_lexer
     - Exhaustiveness checking for `Trit` pattern matches (ensures `true`, `false`, and `unknown` are all handled).
   - `src/env.rs`:
     - `Environment`: Scoped symbol tables tracking variable types, mutability (`mut`), and initialization / move states (`Uninit`, `Valid`, `Moved`).
-    - Built-in functions seeding (`print`, `println`, `len`, `assert`, `input`, `read_file`, `write_file`, `append_file`, `open_file`, `read_line`, `write_line`, `close_file`).
+    - Built-in functions seeding: Runtime active (`print`, `println`, `input`, `read_file`, `write_file`, `append_file`, `open_file`, `read_line`, `write_line`, `close_file`, `rpl_trit_to_str`, `trit_to_str`); Typechecker-only stubs (`to_lower`, `split_any`, `filter`, `to_float`, `to_uint16`, `to_uint32`). (Note: `assert` and `len` are not seeded).
   - `src/error.rs`:
     - `TypeError`: Detailed semantic errors (`TypeMismatch`, `UndefinedVariable`, `CannotMutateImmutable`, `NonExhaustiveMatch`, `UseOfMovedValue`).
 
@@ -296,7 +305,7 @@ rpl_lexer
 | :--- | :--- | :--- | :--- |
 | `tests/fixtures/io_complete.rpl` | Positive test for Layer 1 convenience I/O and Layer 2 stream handles. | `rpl run tests/fixtures/io_complete.rpl` | `[+ + +]` Success |
 | `tests/fixtures/io_use_after_close.rpl` | Negative compile-time test for affine ownership (`close_file` consumption). | `rpl check tests/fixtures/io_use_after_close.rpl` | `[+ - -]` Type Error: Use of moved value 'f' |
-| `tests/fixtures/control_flow.rpl` | Positive test for `if/else`, `while`, `for in ..`, and `match`. | `rpl run tests/fixtures/control_flow.rpl` | `[+ + +]` Success |
+| `tests/fixtures/control_flow.rpl` | Positive test for `if/else`, range `for in ..`, and `match`. | `rpl run tests/fixtures/control_flow.rpl` | `[+ + +]` Success |
 | `tests/fixtures/functions_pipeline.rpl`| Positive test for top-level functions, pipe operator (`|>`), and lambdas. | `rpl run tests/fixtures/functions_pipeline.rpl` | `[+ + +]` Success |
 | `examples/daemon_logger.rpl` | Production-grade system daemon demonstrating stream logging & telemetry. | `rpl run examples/daemon_logger.rpl` | `[+ + +]` Success |
 | `examples/reaktor.rpl` | Nuclear reactor safety telemetry using Kleene 3-state logic (`Trit`). | `rpl run examples/reaktor.rpl` | `[+ + +]` Success |
@@ -375,8 +384,9 @@ When locating, debugging, or adding built-in functions, refer to this exact cros
 | `read_line(handle: File) -> String` | `src/env.rs` | `src/runtime.rs:rpl_read_line` | `src/runtime.rs:rpl_jit_read_line` | `src/lib.rs` |
 | `write_line(handle: File, line) -> Bool`| `src/env.rs` | `src/runtime.rs:rpl_write_line` | `src/runtime.rs:rpl_jit_write_line` | `src/lib.rs` |
 | `close_file(handle: File)` *(Affine)* | `src/env.rs` & `checker.rs` | `src/runtime.rs:rpl_close_file` | `src/runtime.rs:rpl_jit_close_file` | `src/lib.rs` |
-| `len(val: String) -> Int` | `src/env.rs` | `src/codegen.rs` (`strlen`) | `src/compiler.rs` | `src/lib.rs` |
-| `assert(cond: Bool)` | `src/env.rs` | `src/runtime.rs:rpl_assert` | `src/runtime.rs:rpl_jit_assert` | `src/lib.rs` |
+| `trit_to_str(t: Trit) -> String` | `src/env.rs` | `src/runtime.rs:rpl_trit_to_str` | `src/runtime.rs:rpl_jit_trit_to_str` | `src/lib.rs` |
+| `len(val: String) -> Int` *(Roadmap)* | ❌ Not in `src/env.rs` | ❌ Not in `src/runtime.rs` | ⚠️ Declared symbol only (not wired) | ❌ None |
+| `assert(cond: Bool)` *(Roadmap)* | ❌ Not in `src/env.rs` | ❌ Not in `src/runtime.rs` | ❌ Not implemented | ❌ None |
 
 ---
 
@@ -429,7 +439,7 @@ sequenceDiagram
 | `UnaryOp` | Enum | `crates/rpl_ast/src/op.rs` | `Neg` (`-`), `Not` (`not`), `BitNot` (`~`). |
 | `Expr` | Enum | `crates/rpl_ast/src/expr.rs` | `Literal`, `Ident`, `Binary`, `Unary`, `Call`, `MemberAccess`, `Index`, `Lambda`, `ListLiteral`, `MapLiteral`, `InterpolatedString`. |
 | `Program` | Struct | `crates/rpl_ast/src/stmt.rs` | `pub struct Program { pub statements: Vec<Stmt>, pub span: Span }` |
-| `Stmt` | Enum | `crates/rpl_ast/src/stmt.rs` | `VarDecl`, `Assign`, `FnDecl`, `If`, `Match`, `For`, `While`, `Return`, `Expr`, `Spawn`. |
+| `Stmt` | Enum | `crates/rpl_ast/src/stmt.rs` | `Let`, `MutLet`, `Assign`, `FnDecl`, `TypeDecl`, `If`, `Match`, `For`, `ParallelFor`, `Spawn`, `Return`, `Expr`. (Note: `While` is not an AST variant). |
 
 ---
 
@@ -539,10 +549,12 @@ To prevent cross-file drift, agents must understand which document serves what p
 | Document | Purpose | Target Audience | When to Read / Edit |
 | :--- | :--- | :--- | :--- |
 | **`AGENTS.md`** | **Operational Rules & Invariants** | Autonomous coding agents | Read on startup; edit only when changing operating protocols or workflows. |
-| **`docs/CODE_MAP.md`** | **Living Codebase Index & Topography** | LLM agents & developers | Consult FIRST before searching; update whenever AST, types, or built-ins change. |
-| **`docs/COMPILER_CAPABILITIES.md`** | **Active Feature Matrix & Extension Status** | LLM partners & architects | Reference for what language features exist vs roadmap limitations. |
-| **`docs/PROJECT_SPEC.md`** | **Formal Language Grammar & Long-term Spec** | Language designers | Reference for syntactic rules and formal grammar. |
-| **`docs/ROADMAP.md`** | **Phased Milestones & Architectural Evolution** | Project maintainers | Reference for P0–P4 roadmap phases (0.1 Puulane → 1.0 Põhja Konn). |
+| **`docs/agent/CODE_MAP.md`** | **Living Codebase Index & Topography (Ground Truth)** | LLM agents & compiler developers | Consult FIRST before searching; update whenever AST, types, or built-ins change. |
+| **`docs/agent/COMPILER_CAPABILITIES.md`** | **Active Feature Matrix & Working Status (Ground Truth)** | LLM partners & compiler engineers | Authoritative reference for what 100% compiles & runs vs limitations. |
+| **`docs/spec/PROJECT_SPEC.md`** | **Formal Language Grammar & Long-term Spec (Vision)** | Language designers & architects | Reference for syntactic target rules, future AST, and formal grammar. |
+| **`docs/spec/ROADMAP.md`** | **Phased Milestones & Architectural Evolution (Vision)** | Project maintainers & architects | Reference for P0–P4 roadmap phases (0.1 Puulane → 1.0 Põhja Konn). |
+| **`docs/user/LANGUAGE_GUIDE.md`** | **Practical Language Tutorial (End-User)** | RPL developers & programmers | Comprehensive tutorial for writing code on active 0.2 milestone. |
+| **`docs/user/IDE_SETUP.md`** | **Editor Setup & Tooling (End-User)** | RPL developers (Zed, VS Code, AGY) | Configuration guide for running `rpl lsp` with supported editors. |
 | **`CHANGELOG.md`** | **Historical Release Ledger (Past Tense)** | Public users & consumers | Update ONLY upon version release to record new features, fixes, and changes. |
 | **`VERSION`** | **Single Source of Truth (SSoT) Version String** | Compiler build & tooling | Update ONLY on patch or milestone bump (e.g. `0.2+4 "Tohtlane"`). |
 
@@ -550,10 +562,10 @@ To prevent cross-file drift, agents must understand which document serves what p
 
 ## 7. Maintenance Contract & Definition of Done
 
-To ensure `docs/CODE_MAP.md` remains the authoritative, zero-drift topography of the codebase, all contributors and autonomous agents must uphold this contract:
+To ensure `docs/agent/CODE_MAP.md` remains the authoritative, zero-drift topography of the codebase, all contributors and autonomous agents must uphold this contract:
 
 1. **Pre-Inspection Mandatory Check:**
-   - Always open and consult `docs/CODE_MAP.md` before making file view or grep calls. Locate the exact module in Section 1.2 and jump directly to the target lines.
+   - Always open and consult `docs/agent/CODE_MAP.md` before making file view or grep calls. Locate the exact module in Section 1.2 and jump directly to the target lines.
 2. **Definition of Done (DoD) Synchronization:**
    - Every time a new function, struct, enum, AST node, or file is created, or an existing signature or relationship is altered, the agent must update:
      1. The Master File Index in Section 1.2.

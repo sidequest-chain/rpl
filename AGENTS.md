@@ -30,19 +30,23 @@ This document establishes operational boundaries, engineering standards, and exe
    * **CRITICAL INVARIANT - NO AUTO-GIT:** **Never stage, commit, or execute Git commands (`git add`, `git commit`, etc.) automatically without explicit user confirmation.** Always present the proposed changes, verify tests pass, and wait for the user's explicit instruction before executing any git actions.
    * **CRITICAL INVARIANT - NO REMOTE PUSH (USER-ONLY PUSH):** **Never execute `git push` or attempt remote deployment.** Remote pushing to git remotes is strictly reserved for the human user ("pushes are always executed manually by the user").
 
-6. **Code Map Protocol & Anti-Browsing Discipline (`docs/CODE_MAP.md`):**
+6. **Code Map Protocol & Documentation Taxonomy Discipline (`docs/agent/CODE_MAP.md`):**
    * **Pre-Inspection Mandatory Check (Anti-Browsing Discipline):**
-     - **Consult `docs/CODE_MAP.md` First:** Before making any `view_file` or inspection request or running wide workspace searches, autonomous agents are strictly required to consult `docs/CODE_MAP.md`.
-     - **Fast Navigation Matrix (Section 1.2):** Consult the Master File Index in Section 1.2 of `docs/CODE_MAP.md` to identify the responsible file and jump directly to its detailed breakdown without scanning the file tree.
+     - **Consult `docs/agent/CODE_MAP.md` First:** Before making any `view_file` or inspection request or running wide workspace searches, autonomous agents are strictly required to consult `docs/agent/CODE_MAP.md`.
+     - **Fast Navigation Matrix (Section 1.2):** Consult the Master File Index in Section 1.2 of `docs/agent/CODE_MAP.md` to identify the responsible file and jump directly to its detailed breakdown without scanning the file tree.
      - **Surgical Opening Only:** Files may ONLY be opened when they need immediate, surgical editing or when a specific, complex internal implementation detail must be verified.
      - **No Blind Browsing:** Blindly browsing, scanning, or looping through files in the codebase is strictly prohibited.
+   * **Documentation Taxonomy Rule (Dokumentatsiooni taksonoomia reegel — Ground Truth vs. Vision):**
+     - **Tier 1 — Ground Truth (`docs/agent/`):** When an agent or developer needs to know what *actually* compiles, runs, and works today, they must consult **ONLY** `docs/agent/` (`docs/agent/COMPILER_CAPABILITIES.md` for active capability boundaries and `docs/agent/CODE_MAP.md` for living symbol topography). This is the absolute single source of truth for current compiler reality.
+     - **Tier 2 — Future Vision & RFCs (`docs/spec/`):** Material in `docs/spec/` (`PROJECT_SPEC.md`, `ROADMAP.md`) defines long-term language design targets, formal grammar, and roadmap milestones (e.g. channels, algebraic `Result`, full closures). Agents are strictly forbidden from assuming features described in `docs/spec/` exist in the active compiler unless explicitly confirmed in `docs/agent/COMPILER_CAPABILITIES.md`.
+     - **Tier 3 — User Guides (`docs/user/`):** Practical programming tutorials (`LANGUAGE_GUIDE.md`) and editor integration guides (`IDE_SETUP.md`) for human developers writing code against the active milestone.
    * **Clear Documentation Roles:**
      - **`CHANGELOG.md`:** Historical ledger of past releases (what was completed previously).
-     - **`docs/CODE_MAP.md`:** Active index and topography of the current codebase (what exists right now and where).
-     - **`docs/COMPILER_CAPABILITIES.md`:** Working capability matrix vs roadmap boundaries.
+     - **`docs/agent/CODE_MAP.md`:** Active index and topography of the current codebase (what exists right now and where).
+     - **`docs/agent/COMPILER_CAPABILITIES.md`:** Working capability matrix vs roadmap boundaries.
      - **`VERSION`:** Sole Single Source of Truth (SSoT) for the active release string.
    * **Modification Rule (Definition of Done - Mandatory Code Map Synchronization):**
-     - **Continuous Currency:** Every time you create a new function, struct, enum, AST node, or file, or modify an existing signature, parameter, or relationship, you are strictly required as the final step of the task to update the corresponding entries in `docs/CODE_MAP.md`:
+     - **Continuous Currency:** Every time you create a new function, struct, enum, AST node, or file, or modify an existing signature, parameter, or relationship, you are strictly required as the final step of the task to update the corresponding entries in `docs/agent/CODE_MAP.md`:
        1. The detailed module breakdown in Section 3 (`crates/<crate>/src/<file>.rs`).
        2. The Master Symbol Directory in Section 5 (under the relevant crate: 5.1–5.8).
        3. The Master File Index in Section 1.2 if new files or core capabilities were added.
@@ -65,10 +69,16 @@ The repository is structured as a modular Rust workspace:
 ├── AGENTS.md               # Agent guidelines and operational boundaries
 ├── LICENSE                 # European Union Public Licence (EUPL-1.2)
 ├── docs/
-│   ├── CODE_MAP.md         # Architectural index and module navigation for agents
-│   ├── LANGUAGE_GUIDE.md   # Practical language guide and tutorial for developers
-│   ├── PROJECT_SPEC.md     # RPL language specification and grammar
-│   └── ROADMAP.md          # Architectural evolution roadmap and hybrid execution model
+│   ├── README.md               # Documentation taxonomy and navigation index
+│   ├── agent/                  # Tier 1: Ground Truth for autonomous LLM agents and compiler devs
+│   │   ├── CODE_MAP.md         # Architectural index and module navigation for agents
+│   │   └── COMPILER_CAPABILITIES.md # Working capability matrix vs roadmap boundaries
+│   ├── spec/                   # Tier 2: Formal language specification & roadmap (Vision / RFC)
+│   │   ├── PROJECT_SPEC.md     # RPL language specification and grammar targets
+│   │   └── ROADMAP.md          # Architectural evolution roadmap and hybrid execution model
+│   └── user/                   # Tier 3: Practical guides and developer handbook
+│       ├── LANGUAGE_GUIDE.md   # Practical language guide and tutorial for developers
+│       └── IDE_SETUP.md        # Editor setup guide (Zed, VS Code, AGY) for rpl lsp
 ├── Cargo.toml              # Root workspace manifest
 ├── crates/
 │   ├── rpl_lexer/          # Tokenization engine (.rpl source to token stream)
@@ -176,7 +186,7 @@ Every autonomous agent must execute and satisfy this full checklist before propo
    *Verify that no unrelated files, comments, or debug statements were inadvertently modified.*
 
 6. **Code Map Synchronization (Definition of Done):**
-   *Verify that any new or modified compiler modules, AST variants, or CLI commands are fully reflected in `docs/CODE_MAP.md`.*
+   *Verify that any new or modified compiler modules, AST variants, or CLI commands are fully reflected in `docs/agent/CODE_MAP.md`.*
 
 7. **Explicit Confirmation for Git Actions (User-Only Push):**
    *Present test results and summary to the user. Await explicit user confirmation before any `git add` or `git commit`. Never commit unsolicited, and never execute `git push` (remote pushes are strictly manual by the user).*
@@ -282,7 +292,7 @@ All agents and contributors must strictly enforce the following versioning disci
    - **`VERSION` File is the Sole Source of Truth:** The file `VERSION` at the workspace root is the ONLY authoritative location for the active full version string (e.g., `0.2+4 "Tohtlane"`).
    - **Zero Churn on Patch Bumps:** When bumping `+PATCH` (for bug fixes, refinements, or maintenance):
      1. Update **ONLY** `VERSION` and record the release entry in `CHANGELOG.md`.
-     2. **Never search-and-replace patch numbers across documentation or tests.** Documentation files (`README.md`, `docs/PROJECT_SPEC.md`, `docs/ROADMAP.md`, `docs/COMPILER_CAPABILITIES.md`, `docs/IDE_SETUP.md`) refer strictly to the minor milestone generation (e.g. `0.2 "Tohtlane"`) and reference `VERSION` for the active patch iteration.
+     2. **Never search-and-replace patch numbers across documentation or tests.** Documentation files (`README.md`, `docs/spec/PROJECT_SPEC.md`, `docs/spec/ROADMAP.md`, `docs/agent/COMPILER_CAPABILITIES.md`, `docs/user/IDE_SETUP.md`) refer strictly to the minor milestone generation (e.g. `0.2 "Tohtlane"`) and reference `VERSION` for the active patch iteration.
      3. Tests (`cli_tests.rs`) dynamically assert against `VERSION` via `include_str!("../../../VERSION")` and must never hardcode monotonic patch counters.
      4. Compiler CLI and LSP binaries embed `VERSION` directly at compile time via `include_str!`.
    - **Milestone Bumps Only on Phase Completion:** Only when a full major roadmap phase is completed (e.g., transitioning from `0.2 "Tohtlane"` to `0.3 "Kratt"`) are milestone references across architectural documentation updated.
