@@ -24,6 +24,10 @@ This document establishes operational boundaries, engineering standards, and exe
 4. **Public Documentation & Commit Scope:**
    * Local workstation automation, personal scripts, or artifacts excluded via `.gitignore` (such as `tools/`, local aliases, or workstation configs) must **never** be mentioned in git commit messages, `CHANGELOG.md`, or public release notes. Commits and public documentation must solely record features, fixes, and tooling available to all repository consumers.
 
+5. **Strict Git Discipline (NO AUTO-GIT & USER-ONLY PUSH):**
+   * **CRITICAL INVARIANT - NO AUTO-GIT:** **Never stage, commit, or execute Git commands (`git add`, `git commit`, etc.) automatically without explicit user confirmation.** Always present the proposed changes, verify tests pass, and wait for the user's explicit instruction before executing any git actions.
+   * **CRITICAL INVARIANT - NO REMOTE PUSH (USER-ONLY PUSH):** **Never execute `git push` or attempt remote deployment.** Remote pushing to git remotes is strictly reserved for the human user ("pushes are always executed manually by the user").
+
 ---
 
 ## 2. Workspace Architecture
@@ -93,13 +97,15 @@ Before completing any task, an agent must run and satisfy this verification pipe
    ```bash
    cargo clippy --workspace -- -D warnings
    ```
+4. **Explicit Confirmation for Git Actions (User-Only Push):**
+   Present test results and summary to the user. Await explicit user confirmation before any `git add` or `git commit`. Never commit unsolicited, and never execute `git push` (remote pushes are strictly manual by the user).
 
-If any step fails, the agent must document the root cause before applying the minimal corrective diff.
+If any verification step fails, the agent must document the root cause before applying the minimal corrective diff.
 
 ---
 
 ## 5. Git Protocol: "Not What, But Why" (NWBW) Commit System
-All git operations and commit proposals in this repository follow the **"Not What, But Why" (NWBW)** standard built on Conventional Commits. Commit messages MUST be written in English. Do not write shallow diff summaries.
+All git operations and commit proposals in this repository follow the **"Not What, But Why" (NWBW)** standard built on Conventional Commits. Commits are created **strictly upon explicit instruction from the user**. Commit messages MUST be written in English. Do not write shallow diff summaries.
 
 ### 5.1 Core Philosophy
 - **Header:** Conventional Commits standard (`feat`, `fix`, `perf`, `refactor`, `build`, `chore`, `docs`, `test`). Format: `<type>(<scope>): <short imperative title, max 50-72 chars>`
