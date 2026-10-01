@@ -30,6 +30,7 @@ The repository is structured as a modular Rust workspace:
 ```text
 /
 ├── README.md               # Project overview and status
+├── CHANGELOG.md            # Release history and version-by-version change records
 ├── AGENTS.md               # Agent guidelines and operational boundaries
 ├── LICENSE                 # European Union Public Licence (EUPL-1.2)
 ├── docs/

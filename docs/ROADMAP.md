@@ -47,12 +47,12 @@ To balance rapid cross-platform deployment (Windows & Linux) with instantaneous 
 | **Compiler Frontend & Grammar Verification** | **P0 (Base)** | `lexer / parser / typechecker` | **Completed** | Full AST, Logos tokenizer with newline semantics, Pratt parser, Kleene 3-state trit logic. |
 | **Portable C99 Transpiler Backend** | **P0 (Base)** | `codegen_c / cli` | **Completed** | Clean C99 emission, host compiler detection (`clang`/`gcc`/`cl.exe`), standalone binary generation (`rpl build`). |
 | **In-Memory Cranelift JIT Engine** | **P0 (Base)** | `codegen_cranelift / cli` | **Completed** | Sub-ms native code execution for `rpl run`, WindowsFastcall/SystemV ABIs, zero-dependency CLI runtime (v0.2 "Tohtlane"). |
-| **Zero-Dependency Language Server Protocol (LSP)** | **P1 (High)** | `rpl_lsp / cli` | **Completed** | Embedded `rpl lsp` engine with diagnostics, hover documentation, and LSP 3.17 semantic tokens. |
-| **Local Editor Integration (Variant A: File Association)** | **P1 (High)** | `editors / zed / vscode` | **Immediate Focus** | Rapid zero-build Zed and VS Code integration via user file associations and LSP semantic token mapping. |
+| **Zero-Dependency Language Server Protocol (LSP)** | **P0 (Base)** | `rpl_lsp / cli` | **Completed** | Embedded `rpl lsp` engine with diagnostics, hover documentation, and LSP 3.17 semantic tokens. |
+| **Native Zed & VS Code Editor Integrations** | **P0 (Base)** | `editors / zed / code` | **Completed** | Native `wasm32-wasip2` Wasm component extension for Zed and zero-dependency client for VS Code. |
 | **Standard Library: Core IO, Math & String Collections** | **P1 (High)** | `stdlib / runtime` | **Next Up** | First-class string utilities, file system access (`fs`), console I/O, math primitives, and dynamic collections. |
 | **Structured Concurrency Runtime (`spawn:` & Channels)** | **P2 (High)** | `runtime / codegen` | **Medium-Term** | Lightweight M:N cooperative task scheduler, lock-free typed channels (`Channel[T]`), and channel select semantics. |
 | **Multi-Core Data Parallelism (`parallel for`)** | **P2 (High)** | `typechecker / codegen` | **Medium-Term** | Safe work-stealing thread pool distribution across CPU cores for loop ranges and batch data processing. |
-| **Full Native Zed Extension (Variant B: Tree-sitter & Wasm Component)** | **P3 (Planned)** | `editors/zed` | **Scheduled** | Official standalone Zed extension package featuring native Tree-sitter C grammar parser and `wasm32-wasip2` Component Model. |
+| **Official Standalone Extension Repositories & Publishing** | **P3 (Planned)** | `ecosystem / editors` | **Scheduled** | Extracting Zed and VS Code extensions into dedicated standalone repos under official organization for marketplace publishing. |
 | **Exhaustive Borrow & Ownership Verification ("Siil")** | **P3 (Vision)** | `rpl_typechecker` | **Strategic Vision** | Compile-time affine type system preventing data races, use-after-free, and concurrent mutation without garbage collection. |
 | **Self-Hosting Compiler Milestone (`rpl-in-rpl`)** | **P3 (Vision)** | `compiler (all)` | **Milestone 1.0** | Compiling the complete RPL compiler toolchain using RPL itself ("Põhja Konn"). |
 | **External Standalone LSP Daemon Binary** | **P4 (Parked)** | `rpl_lsp` | **Deferred** | Separating `rpl_lsp` into a detached binary; deferred because embedding inside `rpl lsp` eliminates installation friction. |
@@ -62,40 +62,22 @@ To balance rapid cross-platform deployment (Windows & Linux) with instantaneous 
 
 ## 3. DETAILED HORIZON SPECIFICATIONS
 
-### 3.1. Completed Milestones (Foundational Generations)
+> [!NOTE]
+> For release-by-release history, patch notes, and historical additions, refer to [`CHANGELOG.md`](../CHANGELOG.md). This roadmap strictly details architectural horizons, current focus, and technical constraints.
 
-1. **Phase 0: Compiler Frontend Verification (v0.1 Base)**
-   - Strongly-typed Abstract Syntax Tree ([`crates/rpl_ast`](../crates/rpl_ast)).
-   - Logos-based lexical tokenizer with newline significance outside parentheses and interpolation detection ([`crates/rpl_lexer`](../crates/rpl_lexer)).
-   - Recursive Descent + Pratt parser for precedence climbing, binary/unary expressions, and pipe operator `|>` ([`crates/rpl_parser`](../crates/rpl_parser)).
-   - Semantic type checker enforcing Kleene 3-state ternary logic truth tables and non-exhaustive `match` rejection ([`crates/rpl_typechecker`](../crates/rpl_typechecker)).
-   - 100% test coverage across frontends with zero compiler warnings.
-
-2. **Phase 1: Portable C99 Transpiler & Native CLI (v0.1 "Puulane")**
-   - C99 code generator translating AST into clean, human-readable C ([`crates/rpl_codegen_c`](../crates/rpl_codegen_c)).
-   - Representation of `Trit` as an 8-bit signed enum (`-1` = false, `0` = unknown, `1` = true).
-   - Minimal header-only runtime (`rpl_runtime.h`) handling string interpolation and scoped heap buffers.
-   - Cross-platform CLI driver (`rpl run`, `rpl build`, `rpl check`) with automatic host C compiler detection (`clang`, `gcc`, `cl.exe`).
-
-3. **Phase 2: In-Memory Cranelift JIT Engine (v0.2 "Tohtlane")**
-   - High-performance in-memory JIT backend powered by `cranelift-jit` and `cranelift-module` ([`crates/rpl_codegen_cranelift`](../crates/rpl_codegen_cranelift)).
-   - Direct machine code lowering for arithmetic, Kleene ternary logic, structs, comparisons, loops, and control flow.
-   - Host ABI calling convention negotiation (`WindowsFastcall` on Windows, `SystemV` on Linux/macOS).
-   - Sub-millisecond execution lifecycle directly from AST memory with zero intermediate disk artifacts.
-   - Embedded Language Server Protocol daemon (`rpl lsp`) with diagnostics, hover inspection, and LSP 3.17 semantic tokens.
+### 3.1. Foundational Architecture (Completed Milestones)
+- **Phase 0: Compiler Frontend Verification (v0.1 Base):** AST models, Logos lexer with newline semantics, Pratt parser, and Kleene ternary type verification.
+- **Phase 1: Portable C99 Transpiler & Native CLI (v0.1 "Puulane"):** C99 code generation, host compiler detection (`clang`/`gcc`/`cl.exe`), and standalone binary building.
+- **Phase 2: In-Memory Cranelift JIT & LSP Engine (v0.2 "Tohtlane"):** Sub-millisecond machine code execution, embedded Language Server Protocol (`rpl lsp`), and native editor tooling.
 
 ---
 
 ### 3.2. P1: Immediate Focus (Active Next Steps)
 
-1. **Instant Editor Developer Experience (Variant A: Local File Association):**
-   - Provide turnkey `.zed/settings.json` and VS Code configurations associating `.rpl` files with existing native grammars and mapping LSP semantic tokens directly.
-   - Enables immediate syntax highlighting, hover documentation, and compile-on-save diagnostics without requiring external packaging or WebAssembly toolchains.
-   - Documented in [`docs/IDE_SETUP.md`](../docs/IDE_SETUP.md).
-
-2. **Standard Library Core Primitives (`math`, `io`, `fs`, `strings`):**
+1. **Standard Library Core Primitives (`math`, `io`, `fs`, `strings`):**
    - Native modules for filesystem reading/writing, terminal formatted I/O, string manipulation (split, join, replace, regex), and mathematical operations.
    - Runtime memory safety guarantees ensuring buffers are automatically released at scope exit (`end`).
+
 
 ---
 
