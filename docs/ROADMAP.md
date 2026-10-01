@@ -1,12 +1,18 @@
-# RPL Architecture Roadmap & Evolution Strategy
-
-This document outlines the strategic roadmap for the **Running Pseudo Language (RPL)** compiler, detailing the staged pathway from early cross-platform execution to a self-hosting compiler.
+# RPL — STRATEGIC ARCHITECTURE ROADMAP & EVOLUTION MATRIX (ROADMAP.md)
+Document ID: RPL-ROAD-2026-V2  
+Classification: PUBLIC OPEN SOURCE / EUPL-1.2  
+Status: ACTIVE ROADMAP  
+Author: RPL Core Compiler Team  
+Active Release: 0.2+3 "Tohtlane"  
 
 ---
 
-## 1. Core Architectural Strategy: The Hybrid Approach
+## 1. ARCHITECTURAL CONTEXT & HYBRID EXECUTION STRATEGY
 
-To balance rapid cross-platform deployment (Windows & Linux) with ultimate developer experience and native speed, RPL adopts a **Hybrid Execution Model**:
+**Running Pseudo Language (RPL)** is a modern, high-performance programming language designed to look and feel like clean, natural pseudocode while executing with bare-metal C and machine-code velocity.
+
+### 1.1. The Hybrid Execution Model
+To balance rapid cross-platform deployment (Windows & Linux) with instantaneous developer feedback and native execution speed, RPL enforces a dual-engine architecture:
 
 ```text
                              RPL Source (.rpl)
@@ -24,90 +30,131 @@ To balance rapid cross-platform deployment (Windows & Linux) with ultimate devel
    (`rpl build` for Win/Linux)           (`rpl run` / REPL / Dev)
 ```
 
-### Why this hybrid model?
 1. **Immediate Cross-Platform Reliability (Windows + Linux):**
    * Emitting high-performance, standard C99 abstracts away OS differences, system ABIs, and platform-specific linkers.
-   * Complex features (string interpolation, dynamic arrays, hash maps, and deterministic scope cleanup) can be delivered cleanly and portably using C99 and standard libc.
+   * Complex language capabilities (string interpolation, dynamic arrays, Kleene ternary logic, and deterministic scope cleanup) are delivered cleanly and portably using C99 and standard libc.
 2. **Instant Developer Feedback:**
-   * Adding Cranelift JIT in Phase 2 removes the overhead of spawning external C compilers during daily development, providing sub-millisecond in-memory execution for `rpl run` and testing.
-3. **The Bootstrap Vehicle for Self-Hosting:**
-   * History has shown that almost every successful self-hosting language (C++, Nim, early Rust/C) bootstrapped through C before compiling directly to bare-metal. The C99 backend serves as the primary stepping stone for compiling RPL with RPL.
+   * In-memory Cranelift JIT eliminates the latency of spawning external C compilers during daily development, providing sub-millisecond in-memory compilation for `rpl run`, interactive experimentation, and automated testing.
+3. **The Bootstrap Stepping Stone for Self-Hosting:**
+   * The C99 backend serves as the primary stepping stone for compiling RPL with RPL (`rpl-in-rpl`), mirroring the proven pathways of C++, Nim, and early Rust.
 
 ---
 
-## 2. Phased Roadmap
+## 2. PRIORITY-TIERED ROADMAP MATRIX
 
-### Phase 0: Compiler Frontend Verification (✅ Complete)
-- Strongly-typed Abstract Syntax Tree ([`crates/rpl_ast`](../crates/rpl_ast)).
-- Logos-based lexical tokenizer with newline semantics and string interpolation ([`crates/rpl_lexer`](../crates/rpl_lexer)).
-- Recursive Descent + Pratt parser for expressions, precedence climbing, and pipe operator `|>` ([`crates/rpl_parser`](../crates/rpl_parser)).
-- Semantic type checker with Kleene 3-state ternary logic verification and move semantics ([`crates/rpl_typechecker`](../crates/rpl_typechecker)).
-- Comprehensive test suite (47 tests passing, 0 clippy warnings).
-
----
-
-### Phase 1: Portable C99 Backend & Cross-Platform CLI (✅ Complete)
-* **Goal:** Full cross-platform code generation targeting standard C99, executable immediately on Windows and Linux.
-* **Key Components:**
-  * **[`crates/rpl_codegen_c`](../crates/rpl_codegen_c):**
-    - C99 code generator translating validated AST into clean, readable C.
-    - Representation of `Trit` as an 8-bit signed enum (`-1` = false, `0` = unknown, `1` = true).
-    - Basic primitives (`Int`, `Float`, `Bool`, `String`), functions, control flow (`if`, `while`, `for`, `match`).
-    - String interpolation lowering and memory management for scoped heap buffers.
-    - Minimal, header-only runtime library (`rpl_runtime.h`) for string manipulation and collections.
-  * **[`crates/rpl_cli`](../crates/rpl_cli):**
-    - `rpl run <file.rpl>`: Generates C99, detects host C compiler (`clang`, `gcc`, or `cl.exe`), compiles, and executes.
-    - `rpl build <file.rpl> -o <binary>`: Generates an optimized standalone `.exe` (Windows) or ELF executable (Linux).
-    - `rpl check <file.rpl>`: Runs fast frontend validation (lexing, parsing, typechecking) without code generation.
+| Domain / Capability | Priority | Target Subsystem | Status | Primary Objective |
+| :--- | :--- | :--- | :--- | :--- |
+| **Compiler Frontend & Grammar Verification** | **P0 (Base)** | `lexer / parser / typechecker` | **Completed** | Full AST, Logos tokenizer with newline semantics, Pratt parser, Kleene 3-state trit logic. |
+| **Portable C99 Transpiler Backend** | **P0 (Base)** | `codegen_c / cli` | **Completed** | Clean C99 emission, host compiler detection (`clang`/`gcc`/`cl.exe`), standalone binary generation (`rpl build`). |
+| **In-Memory Cranelift JIT Engine** | **P0 (Base)** | `codegen_cranelift / cli` | **Completed** | Sub-ms native code execution for `rpl run`, WindowsFastcall/SystemV ABIs, zero-dependency CLI runtime (v0.2 "Tohtlane"). |
+| **Zero-Dependency Language Server Protocol (LSP)** | **P1 (High)** | `rpl_lsp / cli` | **Completed** | Embedded `rpl lsp` engine with diagnostics, hover documentation, and LSP 3.17 semantic tokens. |
+| **Local Editor Integration (Variant A: File Association)** | **P1 (High)** | `editors / zed / vscode` | **Immediate Focus** | Rapid zero-build Zed and VS Code integration via user file associations and LSP semantic token mapping. |
+| **Standard Library: Core IO, Math & String Collections** | **P1 (High)** | `stdlib / runtime` | **Next Up** | First-class string utilities, file system access (`fs`), console I/O, math primitives, and dynamic collections. |
+| **Structured Concurrency Runtime (`spawn:` & Channels)** | **P2 (High)** | `runtime / codegen` | **Medium-Term** | Lightweight M:N cooperative task scheduler, lock-free typed channels (`Channel[T]`), and channel select semantics. |
+| **Multi-Core Data Parallelism (`parallel for`)** | **P2 (High)** | `typechecker / codegen` | **Medium-Term** | Safe work-stealing thread pool distribution across CPU cores for loop ranges and batch data processing. |
+| **Full Native Zed Extension (Variant B: Tree-sitter & Wasm Component)** | **P3 (Planned)** | `editors/zed` | **Scheduled** | Official standalone Zed extension package featuring native Tree-sitter C grammar parser and `wasm32-wasip2` Component Model. |
+| **Exhaustive Borrow & Ownership Verification ("Siil")** | **P3 (Vision)** | `rpl_typechecker` | **Strategic Vision** | Compile-time affine type system preventing data races, use-after-free, and concurrent mutation without garbage collection. |
+| **Self-Hosting Compiler Milestone (`rpl-in-rpl`)** | **P3 (Vision)** | `compiler (all)` | **Milestone 1.0** | Compiling the complete RPL compiler toolchain using RPL itself ("Põhja Konn"). |
+| **External Standalone LSP Daemon Binary** | **P4 (Parked)** | `rpl_lsp` | **Deferred** | Separating `rpl_lsp` into a detached binary; deferred because embedding inside `rpl lsp` eliminates installation friction. |
+| **Heavy Tree-sitter CLI Toolchain Build Requirement** | **P4 (Parked)** | `tooling` | **Deferred** | Requiring node/npm/gyp to build grammar locally; parked until official upstream tree-sitter integration is standardized. |
 
 ---
 
-### Phase 2: In-Memory Cranelift JIT Engine (`crates/rpl_codegen_cranelift`) (✅ Complete — v0.2 "Tohtlane")
-* **Status:** Fully completed, tested, and integrated into `rpl_cli` as the default execution engine for `rpl run`.
-* **Goal:** Zero external dependencies for interactive execution and lightning-fast developer iteration.
-* **Key Components & Verified Deliverables:**
-  * **[`crates/rpl_codegen_cranelift`](../crates/rpl_codegen_cranelift):**
-    - High-performance in-memory JIT compiler utilizing `cranelift-jit` and `cranelift-module`.
-    - Direct compilation of arithmetic, ternary logic (`Trit`), variables, comparisons, loops (`while`), conditionals (`if`/`else`), and pattern matching (`match`) directly to native host machine code (x86_64, AArch64).
-    - Host-native calling convention management (`WindowsFastcall` on Windows, `SystemV` on Linux).
-    - FFI bridge connecting Cranelift machine code to RPL runtime helper functions (`rpl_print_str`, `rpl_print_trit`, `rpl_print_i64`).
-    - Sub-millisecond execution lifecycle directly from AST without writing temporary disk files.
-  * **CLI Integration (`crates/rpl_cli`):**
-    - `rpl run <file.rpl>`: Executes immediately via in-memory Cranelift JIT by default.
-    - `rpl run --via-c <file.rpl>`: Explicit opt-in to portable C99 compilation pipeline.
-    - `rpl check <file.rpl>`: Runs fast frontend validation with ternary status indicators (`[+ + ?]`).
-    - Standardized version identification (`rpl 0.2+3 "Tohtlane"` with host target triple and active backends).
-* **Test Verification:**
-  - Complete workspace test suite passing (73 unit/integration tests).
-  - Clean Clippy analysis across all crates.
-  - End-to-end integration tests in `crates/rpl_cli/tests/cli_tests.rs` and `crates/rpl_codegen_cranelift/tests/jit_tests.rs`.
+## 3. DETAILED HORIZON SPECIFICATIONS
+
+### 3.1. Completed Milestones (Foundational Generations)
+
+1. **Phase 0: Compiler Frontend Verification (v0.1 Base)**
+   - Strongly-typed Abstract Syntax Tree ([`crates/rpl_ast`](../crates/rpl_ast)).
+   - Logos-based lexical tokenizer with newline significance outside parentheses and interpolation detection ([`crates/rpl_lexer`](../crates/rpl_lexer)).
+   - Recursive Descent + Pratt parser for precedence climbing, binary/unary expressions, and pipe operator `|>` ([`crates/rpl_parser`](../crates/rpl_parser)).
+   - Semantic type checker enforcing Kleene 3-state ternary logic truth tables and non-exhaustive `match` rejection ([`crates/rpl_typechecker`](../crates/rpl_typechecker)).
+   - 100% test coverage across frontends with zero compiler warnings.
+
+2. **Phase 1: Portable C99 Transpiler & Native CLI (v0.1 "Puulane")**
+   - C99 code generator translating AST into clean, human-readable C ([`crates/rpl_codegen_c`](../crates/rpl_codegen_c)).
+   - Representation of `Trit` as an 8-bit signed enum (`-1` = false, `0` = unknown, `1` = true).
+   - Minimal header-only runtime (`rpl_runtime.h`) handling string interpolation and scoped heap buffers.
+   - Cross-platform CLI driver (`rpl run`, `rpl build`, `rpl check`) with automatic host C compiler detection (`clang`, `gcc`, `cl.exe`).
+
+3. **Phase 2: In-Memory Cranelift JIT Engine (v0.2 "Tohtlane")**
+   - High-performance in-memory JIT backend powered by `cranelift-jit` and `cranelift-module` ([`crates/rpl_codegen_cranelift`](../crates/rpl_codegen_cranelift)).
+   - Direct machine code lowering for arithmetic, Kleene ternary logic, structs, comparisons, loops, and control flow.
+   - Host ABI calling convention negotiation (`WindowsFastcall` on Windows, `SystemV` on Linux/macOS).
+   - Sub-millisecond execution lifecycle directly from AST memory with zero intermediate disk artifacts.
+   - Embedded Language Server Protocol daemon (`rpl lsp`) with diagnostics, hover inspection, and LSP 3.17 semantic tokens.
 
 ---
 
-### Phase 3: Standard Library & Concurrency Runtime
-* **Goal:** Realize RPL's promise of structured concurrency and expressive standard types.
-* **Key Components:**
-  * Runtime scheduler for `spawn:` blocks (lightweight task dispatch / thread pool).
-  * Lock-free typed communication channels (`Channel[T]`).
-  * `parallel for` work-stealing distribution across CPU cores.
-  * Standard library modules: `math`, `io`, `fs`, `net`, `time`.
+### 3.2. P1: Immediate Focus (Active Next Steps)
+
+1. **Instant Editor Developer Experience (Variant A: Local File Association):**
+   - Provide turnkey `.zed/settings.json` and VS Code configurations associating `.rpl` files with existing native grammars and mapping LSP semantic tokens directly.
+   - Enables immediate syntax highlighting, hover documentation, and compile-on-save diagnostics without requiring external packaging or WebAssembly toolchains.
+   - Documented in [`docs/IDE_SETUP.md`](../docs/IDE_SETUP.md).
+
+2. **Standard Library Core Primitives (`math`, `io`, `fs`, `strings`):**
+   - Native modules for filesystem reading/writing, terminal formatted I/O, string manipulation (split, join, replace, regex), and mathematical operations.
+   - Runtime memory safety guarantees ensuring buffers are automatically released at scope exit (`end`).
 
 ---
 
-### Phase 4: Self-Hosting Compiler (`rpl-in-rpl`)
-* **Goal:** The ultimate milestone of language maturity — compiling RPL using a compiler written entirely in RPL.
-* **Key Milestones:**
-  1. Port `rpl_lexer` and `rpl_ast` to `.rpl` source files.
-  2. Implement `rpl_parser` and `rpl_typechecker` in idiomatic RPL.
-  3. Compile the RPL-written compiler using the Phase 1 C99 backend (Stage 1 bootstrap).
-  4. Verify the binary can compile its own source code identically (Stage 2 bootstrap).
-  5. The compiler becomes fully self-sufficient and detached from the initial Rust implementation.
+### 3.3. P2: Medium-Term Horizon (Concurrency & Scaling)
+
+1. **Structured Concurrency Runtime (`spawn:` Blocks):**
+   - Lightweight cooperative task scheduler dispatching `spawn:` jobs across worker threads.
+   - Deterministic scope termination: parent blocks await child task completion before closing scope unless explicitly detached.
+
+2. **Lock-Free Communication Channels (`Channel[T]`):**
+   - Bounded and unbounded typed message channels facilitating safe inter-task communication.
+   - Select statement integration allowing tasks to await multiple channels simultaneously.
+
+3. **Multi-Core Data Parallelism (`parallel for`):**
+   - Automatic work-stealing chunking for loop iterations across physical CPU cores.
+   - Compile-time immutability validation preventing data races during parallel iterations.
 
 ---
 
-## 3. Guiding Invariants Across All Phases
+### 3.4. P3: Strategic Vision (Language Independence & Official Packaging)
 
-1. **Scoping Rules:** Scopes always open with `:` and terminate exclusively with `end`. No `{}` or `;` may ever be emitted or accepted.
-2. **Indentation Freedom:** Whitespace is non-semantic. Code generation and formatting must never rely on rigid indentation rules.
-3. **Deterministic Memory Release:** Avoid global garbage collection. Stick to RAII, deterministic lexical scope drops, and ownership transfer.
-4. **Cross-Platform Parity:** Every stage must maintain 100% feature and test parity across Windows and Linux.
+1. **Variant B: Full Native Zed Extension Package (`editors/zed`):**
+   - Build a formal standalone Zed extension implementing the Wasm Component Model (`wasm32-wasip2`).
+   - Package a dedicated Tree-sitter C grammar parser (`tree-sitter-rpl`) to deliver native structural folding, code outlines, and rainbow bracket colorization.
+   - Automated local developer extension installer (`zed: install dev extension`) with zero external network dependencies.
+
+2. **Exhaustive Borrow & Ownership Verification ("Siil" Milestone):**
+   - Compile-time affine type system preventing data races, use-after-free, and concurrent mutation without a tracing garbage collector.
+
+3. **Self-Hosting Compiler Milestone (`1.0 "Põhja Konn"`):**
+   - Re-implementing `rpl_lexer`, `rpl_parser`, `rpl_typechecker`, and `rpl_codegen_c` in idiomatic RPL source files.
+   - Two-stage bootstrap verification: compiling RPL with the Rust-based C99 backend, then verifying self-compilation identity.
+
+---
+
+### 3.5. P4: Deferred Technical Parking Lot
+
+| Parked Initiative | Why Deferred (The Why)? | Unblocking Trigger / Prerequisite |
+| :--- | :--- | :--- |
+| **Variant B Full Tree-sitter Packaging for Local Use** | Requiring Tree-sitter compilation and `wasm32-wasip2` WebAssembly component builds creates unnecessary friction and compiler stalls during local language experimentation. Variant A delivers 100% of semantic tokens and LSP diagnostics in seconds. | When the language syntax stabilizes, public Zed extension publishing is initiated, or `wasm32-wasip2` toolchains are ubiquitous on all developer workstations. |
+| **Detached Standalone `rpl-lsp` Binary** | A unified single-binary distribution (`rpl lsp`) eliminates path lookup issues, package desynchronization, and simplifies installer scripts (`install.ps1`). | If embedded LSP dependencies inflate binary size beyond acceptable single-binary targets. |
+| **Heavy External NPM/Node Grammar Builders** | Requiring Node.js, `node-gyp`, and Python just to parse RPL files in editors violates RPL's zero-dependency philosophy. | When an official upstream Tree-sitter repository is created and precompiled into static C sources. |
+| **Global Garbage Collection Runtime** | A tracing GC introduces non-deterministic stop-the-world pauses, memory bloat, and complicates embedded execution targets. | Rejected permanently in favor of deterministic scope-based RAII and affine ownership verification. |
+
+---
+
+## 4. COMPILER INVARIANTS & OPERATIONAL BOUNDARIES
+
+1. **Block Delimiters:** Scopes always open with `:` and close exclusively with `end`. Structural curly braces `{}` and semicolons `;` must **never** be parsed or emitted under any circumstances.
+2. **Whitespace Flexibility:** Whitespace and indentation carry no semantic scoping significance. Structural blocks are bound purely by `:` and `end`.
+3. **Deterministic Memory Release:** No global tracing garbage collector. All heap allocations are managed via deterministic lexical scope drops, RAII, and ownership transfer.
+4. **Cross-Platform Parity:** Every stage and feature must maintain 100% test and execution parity across Windows and Linux.
+5. **Trinary Diagnostic Verification:** Trit values (`true`, `false`, `unknown`) are first-class language citizens and must enforce exhaustive pattern matching at compile time.
+
+---
+
+## 5. ROADMAP LIFECYCLE & MAINTENANCE PROTOCOL
+
+1. **Active Work Selection:** Development initiatives are selected strictly from the top of the **P1 (Immediate Focus)** tier without premature version locking.
+2. **Version Synchronization:** When milestones complete, the monotonic patch or minor milestone codename is bumped in `VERSION`, `Cargo.toml`, and registered in `AGENTS.md`.
+3. **Documenting Architectural Changes:** Architectural decisions and rejected alternatives must follow the Tier 2 Full HIDC commit protocol and be synchronized across documentation.
+4. **Parking Protocol:** Unscheduled ideas or heavy toolchain requirements that arise during development are immediately cataloged in Section 3.5 (Deferred Parking Lot) with clear "Why Deferred" and "Unblocking Trigger" criteria.
