@@ -62,9 +62,24 @@ The following language constructs are fully implemented across the parser, typec
   - Pattern guards (`case x if x > 10:`).
 
 ### 2.5. Functions, Lambdas & Pipeline
-- **Named Functions:** `fn name(param: Type) -> ReturnType: ... end`.
-- **Pipe Operator (`|>`):** Passes left-hand expression as argument to the right-hand function (`x |> double |> print`).
-- **Lambdas / Closures:** Anonymous inline functions `(x, y) => x + y`.
+- **Named Functions (`fn`):**
+  - Full syntax: `fn name(param: Type, ...) -> ReturnType: ... end fn` (or plain `end`).
+  - Parameter type annotations are **strictly mandatory** (e.g. `fn double_val(n: Int) -> Int:`).
+  - Return type is optional (omitting `-> ReturnType` defaults to unit/void).
+  - Must be declared at top level. All callable code must be structured as `fn` declarations.
+- **Pipe Operator (`|>`):** Passes left-hand expression as argument to the right-hand function (`x |> double |> print` or `x |> double()`).
+- **Lambdas / Inline Closures (`(a, b) => expr`):**
+  > [!WARNING]
+  > **Lambdas are currently untyped inline AST expressions only.**
+  > - Parameters must be bare identifiers without type annotations: `x => x + 1` or `(x, y) => x + y`. Syntax like `(x: Int) => ...` is rejected by the parser.
+  > - **First-class callable variable bindings (`let f = ...; f()`) are NOT supported in 0.2+3.** Functions cannot be stored in variables and invoked as `f(...)`. Always use top-level `fn name(...)` declarations for callable logic.
+
+> [!IMPORTANT]
+> **Strict Code Generation Directives for AI Agents & Developers:**
+> 1. **Functions:** Always declare callable logic using `fn name(param: Type) -> RetType: ... end fn`. Never use `let f = ... => ...` with the intention of calling `f()`.
+> 2. **Parameter Types:** Function parameters require explicit uppercase types (`Int`, `Float`, `Bool`, `String`, `Trit`, or a struct name). Lowercase types like `int` are rejected.
+> 3. **Block Delimiters:** Scopes always open with `:` and close with `end` or labeled `end <keyword>` (`end fn`, `end for`, `end match`, `end type`). Never use curly braces `{}` or semicolons `;`.
+> 4. **Print & Interpolation:** `println("Count: $counter, Sensor: $s.id")` works out-of-the-box in both C99 and Cranelift JIT.
 
 ---
 
@@ -81,10 +96,13 @@ The following language constructs are fully implemented across the parser, typec
 | **Range For Loops (`1..5`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
 | **Struct Declaration & Access** | ✅ Full | ✅ Type verified | ✅ Full (`typedef struct`) | ✅ Full (Offset read) | ✅ Hover & Tokens |
 | **Struct Block Init (`Point: ... end`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
-| **Pipe Operator (`\|>`)** | ✅ Full | ✅ Full | ✅ Full | ⚠️ Via function call | ✅ Tokens |
-| **String Interpolation (`$var`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_str_concat`) | ⚠️ Plain string only | ✅ Tokens |
-| **Match Statement** | ✅ Full | ✅ Exhaustive | ✅ Full (`switch` & `if-else`) | ⚠️ Simple literal | ✅ Exhaustive Err |
+| **Named Functions (`fn name(...)`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_fn`) | ✅ Full | ✅ Full |
+| **Pipe Operator (`\|>`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Tokens |
+| **String Interpolation (`$var`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_str_concat`) | ✅ Full (`rpl_jit_str_concat`) | ✅ Tokens |
+| **Match Statement** | ✅ Full | ✅ Exhaustive | ✅ Full (`switch` & `if-else`) | ⚠️ Simple literal & Trit | ✅ Exhaustive Err |
 | **Built-in `print` / `println`** | ✅ Full | ✅ Full | ✅ Full (`printf`) | ✅ Full (`stdout`) | ✅ Hover |
+| **Lambdas / Closures (`=>`)** | ✅ Parsed | ⚠️ Untyped expr only | ⚠️ Prototype | ⚠️ Prototype | ✅ Tokens |
+| **Callable Variables (`let f = ...; f()`)** | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ TypeError |
 | **List Literals (`[1, 2, 3]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |
 | **Index Access (`arr[i]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |
 | **`spawn: ... end`** | ✅ Parsed | ⚠️ AST only | ❌ Phase 3 "Kratt" | ❌ Phase 3 "Kratt" | ✅ Tokens |
