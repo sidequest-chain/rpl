@@ -98,6 +98,7 @@ The repository is structured as a modular Rust workspace:
 
 1. **Grammar and Syntax Compliance:**
    * Scopes open with `:` and close exclusively with `Token::End`.
+   * **Nesting Depth >= 3 Rule:** At nesting depth $\ge 3$ (3 or more nested `:` blocks), bare `end` is strictly rejected as ambiguous (`AmbiguousBlockEnd`). Autonomous coding agents and code generators MUST emit explicit matching labels (e.g. `end for`, `end if`, `end match`, `end <name>`).
    * Structural curly braces `{}` and semicolons `;` must not be parsed or emitted under any circumstances.
    * String interpolation parsing must strictly recognize `$var` and `$(expr)`.
 

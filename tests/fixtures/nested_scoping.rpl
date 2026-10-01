@@ -1,0 +1,16 @@
+type Point:
+    x: Int
+    y: Int
+end Point
+
+fn scan_points(max_x: Int, max_y: Int):
+    for x in 1..max_x:
+        for y in 1..max_y:
+            if x == y:
+                println("Diagonal match: ($x, $y)")
+            end if
+        end for
+    end for
+end scan_points
+
+scan_points(3, 3)

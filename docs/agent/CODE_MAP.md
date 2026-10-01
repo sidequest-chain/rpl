@@ -101,6 +101,7 @@ Quick lookup matrix for surgical navigation. Agents should consult this table to
 | `tests/fixtures/io_use_after_close.rpl` | Fixtures | Negative compile-time test fixture verifying affine ownership rejection (`Use of moved value`). | Negative Test Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `tests/fixtures/control_flow.rpl` | Fixtures | Test fixture verifying `if/else`, range `for in ..`, and `match`. | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `tests/fixtures/functions_pipeline.rpl` | Fixtures | Test fixture verifying function declarations, pipe operator (`|>`), and lambdas. | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
+| `tests/fixtures/nested_scoping.rpl` | Fixtures | Test fixture verifying nesting depth >= 3 and explicit labeled block ends (`end for`, `end if`, `end fn`). | Test Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `examples/daemon_logger.rpl` | Examples | Production-style system daemon demonstrating stream logging and telemetry. | Example Script | [View 3.9](#39-test-fixtures--official-examples) |
 | `docs/README.md` | Docs Index | Complete documentation system index and decoupled 3-tier taxonomy. | Navigation Index | [View Docs](../README.md) |
 | `docs/agent/CODE_MAP.md` | Ground Truth | Living codebase index, symbols, and module topography. | Architectural Map | [View 1.1](#11-high-level-navigation) |
@@ -226,6 +227,8 @@ rpl_lexer
 - **Key Modules & Files:**
   - `src/lib.rs`:
     - `Parser<'a>`: Lookahead token buffer (`peek`, `peek_next`, `advance`, `expect_token`).
+    - `BlockFrame`: Tracks block label, alternate label identifier, open span, and nesting depth.
+    - `expect_block_end`: Enforces labeled ends at nesting depth $\ge 3$ (`AmbiguousBlockEnd`) and validates label identity matching against opener (`MismatchedBlockEnd`).
     - `parse_program(source: &str) -> Result<Program, ParserError>`: Main entrypoint.
     - `parse_expression(source: &str) -> Result<Expr, ParserError>`: Expression entrypoint.
   - `src/expr.rs`:
@@ -234,7 +237,7 @@ rpl_lexer
     - Scoping enforcement: Blocks must start with `:` and terminate with `Token::End`.
     - Type parsing including `Type::File` recognition.
   - `src/error.rs`:
-    - `ParserError`: Actionable diagnostic messages with span coordinates.
+    - `ParserError`: Actionable diagnostic messages with span coordinates (`AmbiguousBlockEnd`, `MismatchedBlockEnd`, `UnclosedBlock`, etc.).
 
 ---
 

@@ -25,6 +25,19 @@ The following language constructs are fully implemented across the parser, typec
 - **Invariant Scoping:** Scopes open exclusively with `:` and close exclusively with `Token::End` (`end`, or labeled ends like `end fn`, `end for`, `end match`, `end type`).
 - **Punctuation-Free:** No structural curly braces `{}` and no statement semicolons `;`. Statements terminate on `\n`.
 - **Indentation Freedom:** Whitespace is not semantically significant for scoping (unlike Python). Indentation does not trigger parser errors.
+- **Nesting Depth Threshold ($\ge 3$):**
+  - **Depth 1 & 2:** Unlabeled `end` is accepted by parser. Labeled ends (`end fn`, `end if`) are optional.
+  - **Depth $\ge 3$:** Unlabeled `end` is **strictly rejected** as ambiguous (`ParserError::AmbiguousBlockEnd`). Code generators and LLM agents must emit explicit matching labels (e.g. `end for`, `end if`, `end match`, `end <name>`).
+- **Label Validation (`ParserError::MismatchedBlockEnd`):**
+  - If a label token follows `end` on the same line, the parser validates it against the opening block's primary label (`frame.label`) or alternate identifier (`frame.alt_label`):
+    - `fn <name>` accepts `end fn` or `end <name>`.
+    - `type <name>` accepts `end type` or `end <name>`.
+    - `for <var>` accepts `end for` or `end <var>`.
+    - `if` accepts `end if`.
+    - `match` accepts `end match`.
+    - `spawn` accepts `end spawn`.
+    - Struct block init `Name:` accepts `end <Name>`.
+  - Mismatched labels at any depth trigger compile-time rejection.
 
 ### 2.2. Data Types & Literals
 - **Scalar Types:**

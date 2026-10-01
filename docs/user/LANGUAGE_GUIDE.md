@@ -47,7 +47,7 @@ Traditional systems programming languages often require extensive punctuation: c
 2. **No semicolons (`;`)**: Statements end naturally with a newline (`\n`).
 
 ### 2.2 Colons and `end`
-Every code block begins with `:` and concludes with `end`:
+Every code block begins with `:` and concludes with `end`. RPL supports both plain `end` and self-documenting labeled ends:
 
 ```rpl
 fn greet(name: String):
@@ -55,7 +55,70 @@ fn greet(name: String):
 end fn
 ```
 
-You can use plain `end` or self-documenting labeled ends: `end fn`, `end for`, `end if`, `end match`, `end type`.
+#### 2.2.1 Permitted Closing Labels
+Labels may be written directly after `end` on the same line to make code readable and unambiguous:
+
+| Block Opener | Permitted Labels | Examples |
+| :--- | :--- | :--- |
+| `fn <name>(...):` | `end fn` or `end <name>` | `end fn` or `end greet` |
+| `type <name>:` | `end type` or `end <name>` | `end type` or `end Point` |
+| `for <var> in ...:` | `end for` or `end <var>` | `end for` or `end i` |
+| `if <cond>:` | `end if` | `end if` |
+| `match <expr>:` | `end match` | `end match` |
+| `spawn:` | `end spawn` | `end spawn` |
+| `<Type>:` (struct init) | `end <Type>` | `end Point` |
+
+#### 2.2.2 The Nesting Depth Rule (Nesting Depth $\ge 3$ Requires Explicit Labels)
+To keep deeply nested code readable and eliminate dangling block ambiguities, RPL enforces a strict nesting depth rule:
+
+* **Shallow Nesting (Depth 1 and 2):** Plain `end` is permitted (though labeled ends like `end fn` or `end if` remain idiomatic and encouraged).
+* **Deep Nesting (Depth $\ge 3$):** **Plain `end` is prohibited.** Whenever a block is opened inside 2 or more enclosing blocks (nesting depth 3 or deeper), its closing `end` **must** be explicitly labeled with the construct kind or identifier (e.g. `end for`, `end if`, `end match`, `end <name>`).
+
+**Negative Example (Bare `end` at Depth 3):**
+```rpl
+// Depth 1: fn
+fn analyze_matrix(limit: Int):
+    // Depth 2: if
+    if limit > 0:
+        // Depth 3: for (depth >= 3!)
+        for i in 1..limit:
+            println("Processing index $i")
+        end // COMPILE ERROR: bare 'end' at depth 3 is ambiguous!
+    end
+end
+```
+Attempting to compile this produces a static parser error:
+```text
+[- - -] Parser error in 'main.rpl':
+  Ambiguous block end at depth 3: block 'for' opened at line 5:9 requires explicit label 'end for' at line 7:9-12
+```
+
+**Corrected Version (Explicitly Labeled):**
+```rpl
+fn analyze_matrix(limit: Int):
+    if limit > 0:
+        for i in 1..limit:
+            println("Processing index $i")
+        end for       // Required label at depth 3
+    end if            // Recommended label at depth 2
+end fn                // Recommended label at depth 1
+```
+
+#### 2.2.3 Label Matching & Compile-Time Rejection
+When an explicit label is provided, the compiler strictly verifies that it matches the opening block. A mismatched label triggers `MismatchedBlockEnd`:
+
+```rpl
+fn verify():
+    if true:
+        println("Checking")
+    end for  // COMPILE ERROR: Mismatched block end!
+end fn
+```
+Diagnostic:
+```text
+[- - -] Parser error:
+  Mismatched block end: expected closing for 'if' opened at line 2:5, but found 'end for' at line 4:5-11
+```
 
 ### 2.3 Indentation Freedom
 While 4-space indentation is recommended for visual neatness, the compiler does **not** enforce whitespace rules for scoping. Because scopes are strictly delimited by `:` and `end`, indentation variance does not alter semantics:

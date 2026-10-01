@@ -45,6 +45,10 @@ RPL (Running Pseudo Language) is a compiled, zero-garbage-collector systems prog
    ```
 4. **Zero Java-Style Ceremony:** No classes, no inheritance hierarchies, and no `public static void main`. Execution starts at the module top level or inside an explicit entry function.
 5. **String Interpolation Syntax:** Variables inside string literals are interpolated using `$identifier` or `$(expression)`.
+6. **Block Nesting & Explicit Label Invariant:**
+   * At shallow nesting levels (depth 1 or 2), closing blocks with unlabeled `end` is valid syntax.
+   * At deep nesting levels (depth $\ge 3$), unlabeled `end` is strictly prohibited and triggers a compile-time ambiguity error (`AmbiguousBlockEnd`). Code generators and developers must emit matching labels (e.g. `end for`, `end if`, `end match`, `end <name>`).
+   * When an explicit label is provided, the parser enforces strict identity matching with the opening block construct, rejecting mismatched labels with `MismatchedBlockEnd`.
 
 ---
 
