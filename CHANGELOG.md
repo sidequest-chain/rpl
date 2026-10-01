@@ -12,7 +12,6 @@ and this project adheres to the RPL Versioning Policy (`MAJOR.MINOR[+PATCH] "Cod
 ### Added
 - **Native Zed Editor Extension (`wasm32-wasip2`):** Compiled WebAssembly Component Model extension in `editors/zed` supporting native language registration, automatic `rpl lsp` launching, and semantic token coloring.
 - **LSP Semantic Token Rules:** Declarative semantic token mapping in `editors/zed/languages/rpl/semantic_token_rules.json` aligning keywords, types, variables, functions, strings, numbers, operators, and comments.
-- **Local Deployment Automation:** PowerShell and batch installation scripts (`tools/install.ps1`, `tools/install.cmd`) building release binaries and safely deploying directly to `C:\Program Files\RunningPseudoLanguage` with UAC elevation support.
 - **Priority-Tiered Strategic Roadmap:** Restructured `docs/ROADMAP.md` into an agile priority matrix (P0 Base through P4 Deferred Parking Lot).
 
 ### Changed
