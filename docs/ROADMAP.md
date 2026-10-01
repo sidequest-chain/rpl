@@ -3,7 +3,7 @@ Document ID: RPL-ROAD-2026-V2
 Classification: PUBLIC OPEN SOURCE / EUPL-1.2  
 Status: ACTIVE ROADMAP  
 Author: RPL Core Compiler Team  
-Active Release: 0.2+4 "Tohtlane"  
+Active Milestone: 0.2 "Tohtlane" (Active patch: see [VERSION](file:///D:/Dev/rpl/VERSION))  
 
 ---
 

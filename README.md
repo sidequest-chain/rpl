@@ -1,13 +1,14 @@
 # RPL (Running Pseudo Language)
 
-[![Version: 0.2+4 "Tohtlane"](https://img.shields.io/badge/version-0.2%2B4_%22Tohtlane%22-blue.svg)]()
+[![Milestone: 0.2 "Tohtlane"](https://img.shields.io/badge/milestone-0.2_%22Tohtlane%22-blue.svg)](docs/ROADMAP.md)
+[![Active Release: see VERSION](https://img.shields.io/badge/release-see%20VERSION-informational.svg)](VERSION)
 [![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL_1.2-blue.svg)](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)
 [![Build Status](https://img.shields.io/badge/tests-74%20passed-brightgreen.svg)]()
 [![Language: Rust](https://img.shields.io/badge/rust-2021%20edition-orange.svg)]()
 
 > **Running Pseudo Language (RPL)** is a compiled, zero-garbage-collector systems programming language designed to eliminate the translation boundary between conceptual pseudocode and high-performance native execution.
 >
-> **Current Official Release:** `0.2+4 "Tohtlane"` (Target: host native with in-memory Cranelift JIT & C99 backends).
+> **Current Milestone:** `0.2 "Tohtlane"` (Active patch: see [`VERSION`](VERSION) / [`CHANGELOG.md`](CHANGELOG.md)). Target: host native with in-memory Cranelift JIT & C99 backends.
 
 ---
 

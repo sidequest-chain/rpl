@@ -11,7 +11,7 @@ Ensure the `rpl` compiler executable is installed and accessible in your system 
 ```powershell
 # Verify installation
 rpl --version
-# Output: rpl 0.2+4 "Tohtlane" ...
+# Output: rpl 0.2... "Tohtlane" ...
 ```
 
 The language server is built directly into the `rpl` binary and invoked via:

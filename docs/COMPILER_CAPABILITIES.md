@@ -1,13 +1,13 @@
 # RPL Compiler Capabilities & Implementation Status
 
-> **Target Version:** 0.2+4 "Tohtlane"  
+> **Active Milestone:** 0.2 "Tohtlane" (Active patch: see [VERSION](file:///D:/Dev/rpl/VERSION))  
 > **Purpose:** Authoritative technical snapshot of currently implemented, working compiler features versus roadmap items. Designed specifically for LLM agents, compiler developers, and architectural discussions to propose well-scoped language extensions without drifting from the active codebase.
 
 ---
 
 ## 1. Executive Summary
 
-RPL (Running Pseudo Language) is a compiled, zero-GC systems language designed to execute pseudocode with bare-metal speed. As of version `0.2+4`, the compiler features a dual-backend architecture:
+RPL (Running Pseudo Language) is a compiled, zero-GC systems language designed to execute pseudocode with bare-metal speed. As of milestone `0.2 "Tohtlane"`, the compiler features a dual-backend architecture:
 1. **Phase 1: C99 Transpiler (`rpl_codegen_c`)** — Generates human-readable, self-contained C99 compiled via GCC/Clang/MSVC.
 2. **Phase 2: In-Memory Cranelift JIT (`rpl_codegen_cranelift`)** — In-memory machine code compilation executing `.rpl` files directly with sub-10ms latency via `rpl run`.
 3. **Developer Tooling (`rpl_lsp`, `rpl_cli`)** — Built-in CLI commands (`run`, `build`, `check`, `lsp`) and zero-dependency LSP supporting semantic tokens, live hover documentation, and syntax/type diagnostics for VS Code and Zed.
@@ -72,7 +72,7 @@ The following language constructs are fully implemented across the parser, typec
   > [!WARNING]
   > **Lambdas are currently untyped inline AST expressions only.**
   > - Parameters must be bare identifiers without type annotations: `x => x + 1` or `(x, y) => x + y`. Syntax like `(x: Int) => ...` is rejected by the parser.
-  > - **First-class callable variable bindings (`let f = ...; f()`) are NOT supported in 0.2+4.** Functions cannot be stored in variables and invoked as `f(...)`. Always use top-level `fn name(...)` declarations for callable logic.
+  > - **First-class callable variable bindings (`let f = ...; f()`) are NOT supported in milestone 0.2.** Functions cannot be stored in variables and invoked as `f(...)`. Always use top-level `fn name(...)` declarations for callable logic.
 
 ### 2.6. Two-Tier Input / Output System (Convenience & Streams)
 RPL features a native, zero-dependency two-tier I/O architecture combining high-level pseudocode convenience with long-lived system streaming:

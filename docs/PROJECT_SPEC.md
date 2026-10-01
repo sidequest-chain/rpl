@@ -1,6 +1,6 @@
 # RPL (Running Pseudo Language) — Technical Specification and Language Design
 
-Version: 0.2+4 "Tohtlane"  
+Milestone: 0.2 "Tohtlane" (Active patch: see [VERSION](file:///D:/Dev/rpl/VERSION))  
 File Extension: `.rpl`  
 CLI Tooling: `rpl` (`rpl run`, `rpl build`, `rpl check`)  
 Target Audience: Compiler engineering, LLM code generation, formal syntax verification, systems runtime.
@@ -420,9 +420,9 @@ Examples:
 * **`"Codename"`**: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (*Eesti rahva ennemuistsed jutud*, 1866).
 * **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` denotes build metadata per SemVer 2.0, not a ternary truth value.
 
-CLI invocation (`rpl --version`) produces the structured identifier alongside the active host target triple and supported backends:
+CLI invocation (`rpl --version`) produces the structured identifier (from `VERSION`) alongside the active host target triple and supported backends:
 ```text
-rpl 0.2+4 "Tohtlane"
+rpl <version> "<codename>"
 Target: <target-triple> (backends: cranelift-jit, c99-zig)
 ```
 

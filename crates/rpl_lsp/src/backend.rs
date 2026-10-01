@@ -48,7 +48,7 @@ impl LanguageServer for Backend {
                     include_str!("../../../VERSION")
                         .split_whitespace()
                         .next()
-                        .unwrap_or("0.2+4")
+                        .unwrap_or_default()
                         .to_string(),
                 ),
             }),

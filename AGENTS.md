@@ -31,9 +31,22 @@ This document establishes operational boundaries, engineering standards, and exe
    * **CRITICAL INVARIANT - NO REMOTE PUSH (USER-ONLY PUSH):** **Never execute `git push` or attempt remote deployment.** Remote pushing to git remotes is strictly reserved for the human user ("pushes are always executed manually by the user").
 
 6. **Code Map Protocol & Anti-Browsing Discipline (`docs/CODE_MAP.md`):**
-   * **Consult `docs/CODE_MAP.md` First:** Before inspecting arbitrary files or running wide workspace searches, autonomous agents must consult `docs/CODE_MAP.md` to identify the responsible crate, module, and data flow.
-   * **Surgical Inspection Only:** Files may only be opened when they need immediate editing or when a specific internal implementation detail must be verified. Blind scanning across crates is prohibited.
-   * **Continuous Currency (Definition of Done):** Whenever new AST nodes, types, compiler passes, or CLI commands are added or modified, the agent must update `docs/CODE_MAP.md` as part of the task completion (Zero Drift).
+   * **Pre-Inspection Mandatory Check (Anti-Browsing Discipline):**
+     - **Consult `docs/CODE_MAP.md` First:** Before making any `view_file` or inspection request or running wide workspace searches, autonomous agents are strictly required to consult `docs/CODE_MAP.md`.
+     - **Fast Navigation Matrix (Section 1.2):** Consult the Master File Index in Section 1.2 of `docs/CODE_MAP.md` to identify the responsible file and jump directly to its detailed breakdown without scanning the file tree.
+     - **Surgical Opening Only:** Files may ONLY be opened when they need immediate, surgical editing or when a specific, complex internal implementation detail must be verified.
+     - **No Blind Browsing:** Blindly browsing, scanning, or looping through files in the codebase is strictly prohibited.
+   * **Clear Documentation Roles:**
+     - **`CHANGELOG.md`:** Historical ledger of past releases (what was completed previously).
+     - **`docs/CODE_MAP.md`:** Active index and topography of the current codebase (what exists right now and where).
+     - **`docs/COMPILER_CAPABILITIES.md`:** Working capability matrix vs roadmap boundaries.
+     - **`VERSION`:** Sole Single Source of Truth (SSoT) for the active release string.
+   * **Modification Rule (Definition of Done - Mandatory Code Map Synchronization):**
+     - **Continuous Currency:** Every time you create a new function, struct, enum, AST node, or file, or modify an existing signature, parameter, or relationship, you are strictly required as the final step of the task to update the corresponding entries in `docs/CODE_MAP.md`:
+       1. The detailed module breakdown in Section 3 (`crates/<crate>/src/<file>.rs`).
+       2. The Master Symbol Directory in Section 5 (under the relevant crate: 5.1–5.8).
+       3. The Master File Index in Section 1.2 if new files or core capabilities were added.
+     - **Zero Drift:** The centralized code map must always remain complete, accurate, and up-to-date.
 
 7. **Mandatory Fresh Binary Rebuild for RPL Verification (Ironclad Invariant):**
    * **Stale Binary Prohibition:** When testing or verifying `.rpl` files, the agent must **never** rely on a previously existing or cached compiler binary.
@@ -222,7 +235,7 @@ All agents and contributors must strictly enforce the following versioning disci
 1. **Format:** `MAJOR.MINOR[+PATCH] "Codename"` (e.g., base `0.2 "Tohtlane"`, or refined variant `0.2+1 "Tohtlane"`).
    - `MAJOR.MINOR`: Architectural generation and feature milestone. Initial milestone releases may appear in clean base form (e.g., `0.2 "Tohtlane"` without unnecessary `+0` noise).
    - `+PATCH`: Monotonic patch counter (`+1`, `+2`, `+3`, ... `+x`) designating substantive bug fixes, maintenance adjustments, or refined iterations within the given `MINOR` milestone. It strictly does not represent test suite counts.
-   - **Current active version:** `0.2+4 "Tohtlane"` (the verified fourth refined patch variant of Phase 2, with zero-ceremony and handle-based I/O architecture, affine move verification, native Zed & VS Code semantic tokens & zero-dependency LSP).
+   - **Current active milestone:** `0.2 "Tohtlane"` (Phase 2 Cranelift JIT engine and tooling). The exact active patch version string (e.g. `0.2+4 "Tohtlane"`) is maintained exclusively in the `VERSION` file as the Single Source of Truth (SSoT).
    - `"Codename"`: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (1866).
    - **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` designates build/patch metadata per SemVer 2.0, not a ternary truth value.
 
@@ -259,10 +272,19 @@ All agents and contributors must strictly enforce the following versioning disci
 6. **Proactive Tag & Release Notification Protocol:**
    - Autonomous agents must actively assist the developer by signaling when an official Git tag and release should be created.
    - **Trigger Conditions for Tag Prompts:**
-     - **Substantive Bug Fixes (`fix`):** Whenever a verified fix to the compiler, parser, typechecker, or codegen backends is committed, the agent must propose incrementing the monotonic patch counter (`0.2+1` → `0.2+2`), synchronize documentation, and proactively prompt the user with the tag command (e.g., `"We have completed and verified a substantive fix. Should we create and push the official release tag: git tag 0.2+2 && git push origin 0.2+2 ?"`).
-     - **Milestone Features (`feat` / Phase Completion in `ROADMAP.md`):** Whenever a major milestone or phase is completed, the agent must propose advancing the minor milestone codename (e.g., `0.3 "Kratt"`), update version references, and explicitly prompt the user for the official release tag.
+     - **Substantive Bug Fixes (`fix` / refined patch iterations):** Whenever a verified fix to the compiler, parser, typechecker, or codegen backends is committed, the agent must propose incrementing the monotonic patch counter in `VERSION`, document the release in `CHANGELOG.md`, and proactively prompt the user with the tag command (e.g., `"We have completed and verified a substantive fix. Should we create and push the official release tag: git tag 0.2+5 && git push origin 0.2+5 ?"`).
+     - **Milestone Features (`feat` / Phase Completion in `ROADMAP.md`):** Whenever a major milestone or phase is completed, the agent must propose advancing the minor milestone codename (e.g., `0.3 "Kratt"`), update milestone references across documentation, and explicitly prompt the user for the official release tag.
    - **Tag Formats Supported:**
      - Primary standard: Clean format without `v` (e.g. `0.2+1`, `0.2+2`, `0.3`).
      - Backwards compatibility: Legacy format with `v` (e.g. `v0.2+1`) remains supported by GitHub Actions.
+
+7. **Single Source of Truth (SSoT) Versioning Protocol (Anti-Churn Invariant):**
+   - **`VERSION` File is the Sole Source of Truth:** The file `VERSION` at the workspace root is the ONLY authoritative location for the active full version string (e.g., `0.2+4 "Tohtlane"`).
+   - **Zero Churn on Patch Bumps:** When bumping `+PATCH` (for bug fixes, refinements, or maintenance):
+     1. Update **ONLY** `VERSION` and record the release entry in `CHANGELOG.md`.
+     2. **Never search-and-replace patch numbers across documentation or tests.** Documentation files (`README.md`, `docs/PROJECT_SPEC.md`, `docs/ROADMAP.md`, `docs/COMPILER_CAPABILITIES.md`, `docs/IDE_SETUP.md`) refer strictly to the minor milestone generation (e.g. `0.2 "Tohtlane"`) and reference `VERSION` for the active patch iteration.
+     3. Tests (`cli_tests.rs`) dynamically assert against `VERSION` via `include_str!("../../../VERSION")` and must never hardcode monotonic patch counters.
+     4. Compiler CLI and LSP binaries embed `VERSION` directly at compile time via `include_str!`.
+   - **Milestone Bumps Only on Phase Completion:** Only when a full major roadmap phase is completed (e.g., transitioning from `0.2 "Tohtlane"` to `0.3 "Kratt"`) are milestone references across architectural documentation updated.
 
 

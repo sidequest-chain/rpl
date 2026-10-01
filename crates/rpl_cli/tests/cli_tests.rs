@@ -150,8 +150,9 @@ fn test_cli_version() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
+    let expected_version = include_str!("../../../VERSION").trim();
     assert!(
-        stdout.contains("rpl 0.2+4 \"Tohtlane\""),
+        stdout.contains(&format!("rpl {expected_version}")),
         "stdout was: {}",
         stdout
     );
@@ -199,25 +200,22 @@ fn test_version_consistency_across_workspace() {
         .trim()
         .to_string();
 
-    // 1. Verify README.md contains exact version string
-    let readme_content = fs::read_to_string(root_dir.join("README.md"))
-        .expect("README.md must exist");
     assert!(
-        readme_content.contains(&version_content),
-        "README.md does not contain exact release from VERSION ('{}')",
-        version_content
+        !version_content.is_empty(),
+        "VERSION file at repository root must not be empty"
     );
 
-    // 2. Verify docs/PROJECT_SPEC.md contains exact version string
-    let spec_content = fs::read_to_string(root_dir.join("docs").join("PROJECT_SPEC.md"))
-        .expect("PROJECT_SPEC.md must exist");
+    // 1. Verify CHANGELOG.md contains entry for current VERSION tag
+    let changelog_content = fs::read_to_string(root_dir.join("CHANGELOG.md"))
+        .expect("CHANGELOG.md must exist");
+    let version_tag = version_content.split_whitespace().next().unwrap_or("");
     assert!(
-        spec_content.contains(&version_content),
-        "PROJECT_SPEC.md does not contain exact release from VERSION ('{}')",
-        version_content
+        changelog_content.contains(version_tag),
+        "CHANGELOG.md must contain entry for current release tag '{}'",
+        version_tag
     );
 
-    // 3. Verify rpl --version matches root VERSION
+    // 2. Verify rpl --version matches root VERSION dynamically
     let rpl_bin = get_rpl_bin();
     let output = Command::new(&rpl_bin)
         .arg("--version")
