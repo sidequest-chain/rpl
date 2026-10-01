@@ -5,7 +5,7 @@ Official Zed extension providing native language support, filetype registration 
 ## Structure
 - `extension.toml`: Extension manifest declaring language `RPL` and language server `rpl`.
 - `languages/rpl/config.toml`: Language configuration defining file suffix `.rpl`, comments (`//`, `/* */`), and bracket auto-closing rules.
-- `src/lib.rs`: Rust extension code compiled to WebAssembly (`wasm32-wasip1`) implementing `zed_extension_api::Extension` to spawn `rpl lsp`.
+- `src/lib.rs`: Rust extension code compiled to WebAssembly (`wasm32-wasip2`) implementing `zed_extension_api::Extension` to spawn `rpl lsp`.
 - `extension.wasm`: Precompiled WebAssembly extension binary.
 
 ## Installation in Zed

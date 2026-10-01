@@ -23,7 +23,7 @@ rpl lsp
 
 ## 2. Zed Editor Setup
 
-RPL provides a native Zed extension in `editors/zed/` compiled to WebAssembly (`wasm32-wasip1`) that registers the `RPL` language and attaches the `rpl lsp` language server.
+RPL provides a native Zed extension in `editors/zed/` compiled to WebAssembly (`wasm32-wasip2`) that registers the `RPL` language and attaches the `rpl lsp` language server.
 
 ### Option A: Install via Command Palette (Recommended for Development)
 1. Open **Zed**.
