@@ -64,7 +64,7 @@
     - `Literal`: `Int(i64)`, `Float(f64)`, `String(String)`, `Bool(bool)`, `Trit(TritValue)`.
     - `TritValue`: 3-valued Kleene logic variants: `True`, `False`, `Unknown`. Implements ternary `and`, `or`, `not`.
   - `src/types.rs`:
-    - `Type`: `Int`, `Float`, `String`, `Bool`, `Trit`, `Void`, `List(Box<Type>)`, `Map(Box<Type>, Box<Type>)`, `Custom(String)`, `Fn(Vec<Type>, Box<Type>)`.
+    - `Type`: `Int`, `Float`, `String`, `Bool`, `Trit`, `File` (opaque stream handle), `Void`, `List(Box<Type>)`, `Map(Box<Type>, Box<Type>)`, `Custom(String)`, `Fn(Vec<Type>, Box<Type>)`.
   - `src/op.rs`:
     - `BinaryOp`: Arithmetic (`+`, `-`, `*`, `/`, `%`), Comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`), Logical (`and`, `or`), Bitwise/Shift, Pipe (`|>`), Range (`..`).
     - `UnaryOp`: Negation (`-`), Logical Not (`not`), Bitwise Not.
@@ -112,6 +112,7 @@
     - `Precedence` hierarchy: `Assignment` < `Pipe` < `LogicalOr` < `LogicalAnd` < `Equality` < `Comparison` < `Term` < `Factor` < `Unary` < `Call/Index/Member`.
   - `src/stmt.rs`:
     - Scoping enforcement: Blocks must start with `:` and terminate with `Token::End`.
+    - Type parsing including `Type::File` recognition.
   - `src/error.rs`:
     - `ParserError`: Actionable diagnostic messages with span coordinates.
   - `tests/parser_tests.rs`: Tests covering grammar constructs and language spec examples.
@@ -120,30 +121,30 @@
 
 ### 2.4 `rpl_typechecker`
 - **Location:** `crates/rpl_typechecker/`
-- **Role:** Semantic validation, type inference, Kleene 3-value logic consistency, and pattern match exhaustiveness.
+- **Role:** Semantic validation, type inference, Kleene 3-value logic consistency, pattern match exhaustiveness, and affine move tracking.
 - **Key Modules & Files:**
   - `src/lib.rs`:
     - `check_program(program: &Program) -> Result<(), Vec<TypeError>>`: Main entrypoint.
   - `src/checker.rs`:
-    - `TypeChecker`: AST traversal checking variable declarations, mutations, types of expressions, and control structures.
+    - `TypeChecker`: AST traversal checking variable declarations, mutations, types of expressions, control structures, and affine move enforcement for `close_file`.
     - Exhaustiveness checking for `Trit` pattern matches (ensures `true`, `false`, and `unknown` are all handled).
   - `src/env.rs`:
     - `Environment`: Scoped symbol tables tracking variable types, mutability (`mut`), and initialization / move states (`Uninit`, `Valid`, `Moved`).
-    - Built-in functions seeding (`print`, `println`, `len`, `assert`).
+    - Built-in functions seeding (`print`, `println`, `len`, `assert`, `input`, `read_file`, `write_file`, `append_file`, `open_file`, `read_line`, `write_line`, `close_file`).
   - `src/error.rs`:
-    - `TypeError`: Detailed semantic errors (`TypeMismatch`, `UndefinedVariable`, `CannotMutateImmutable`, `NonExhaustiveMatch`, `UseAfterMove`).
-  - `tests/typechecker_tests.rs`: Tests for Kleene truth tables, immutability, and trit match coverage.
+    - `TypeError`: Detailed semantic errors (`TypeMismatch`, `UndefinedVariable`, `CannotMutateImmutable`, `NonExhaustiveMatch`, `UseOfMovedValue`).
+  - `tests/typechecker_tests.rs`: Tests for Kleene truth tables, immutability, trit match coverage, and affine use-after-close checks.
 
 ---
 
 ### 2.5 `rpl_codegen_c`
 - **Location:** `crates/rpl_codegen_c/`
-- **Status:** ✅ **Complete (Phase 1)** — C99 transpiler backend emitting clean, optimized C99 code.
+- **Status:** ✅ **Complete (Phase 1)** — C99 transpiler backend emitting clean, optimized C99 code with Two-Tier I/O.
 - **Key Modules & Files:**
   - `src/lib.rs`: `generate_c(program: &Program) -> Result<String, CodegenError>` entrypoint.
   - `src/codegen.rs`: `CGenerator` translating declarations, functions, expressions, and control flow.
-  - `src/runtime.rs`: `RPL_RUNTIME_H` header with Kleene ternary logic (`rpl_trit_t`), output functions, and string interpolation helpers.
-  - `src/types.rs`: C type mapping functions (`to_c_type`, `to_c_return_type`).
+  - `src/runtime.rs`: `RPL_RUNTIME_H` header with Kleene ternary logic (`rpl_trit_t`), output functions, Two-Tier I/O functions (`rpl_input`, `rpl_read_file`, `rpl_write_file`, `rpl_append_file`, `rpl_open_file`, `rpl_read_line`, `rpl_write_line`, `rpl_close_file`), and string interpolation helpers.
+  - `src/types.rs`: C type mapping functions (`to_c_type`, `to_c_return_type`, `Type::File` -> `rpl_file_t`).
   - `src/error.rs`: `CodegenError` definitions via `thiserror`.
   - `tests/codegen_tests.rs`: Comprehensive test suite verifying C generation and native compilation with host C compiler.
 
@@ -163,12 +164,12 @@
 - **Status:** ✅ **Complete (Phase 2)** — In-memory Cranelift JIT engine delivering sub-millisecond execution without external C toolchains.
 - **Key Modules & Files:**
   - `src/lib.rs`: `run_program(program: &Program) -> Result<i64, CodegenCraneliftError>` entrypoint.
-  - `src/compiler.rs`: AST lowering into Cranelift IR, Kleene ternary logic in CPU registers, struct stack slot allocation, control flow, functions, loops, and string interpolation lowering.
+  - `src/compiler.rs`: AST lowering into Cranelift IR, Kleene ternary logic in CPU registers, struct stack slot allocation, control flow, functions, loops, string interpolation lowering, and Two-Tier I/O direct dispatch.
   - `src/jit.rs`: `JITCompiler` native host ISA builder, JIT module management, and memory execution.
-  - `src/runtime.rs`: Native C-ABI runtime helper functions (`rpl_jit_print_*`, `rpl_jit_str_concat`, etc.) and symbol table registration.
-  - `src/types.rs`: Cranelift type translation (`rpl_to_cl_type`) and memory layout computation (`compute_struct_layout`).
+  - `src/runtime.rs`: Native C-ABI runtime helper functions (`rpl_jit_print_*`, `rpl_jit_str_concat`, `rpl_jit_input`, `rpl_jit_read_file`, `rpl_jit_write_file`, `rpl_jit_append_file`, `rpl_jit_open_file`, `rpl_jit_read_line`, `rpl_jit_write_line`, `rpl_jit_close_file`, `JitFile`) and symbol table registration.
+  - `src/types.rs`: Cranelift type translation (`rpl_to_cl_type`, `Type::File` -> pointer) and memory layout computation (`compute_struct_layout`).
   - `src/error.rs`: `CodegenCraneliftError` definitions via `thiserror`.
-  - `tests/jit_tests.rs`: Unit and integration test suite verifying JIT arithmetic, Kleene ternary logic truth tables, struct access, loops, and `examples/reaktor.rpl`.
+  - `tests/jit_tests.rs`: Unit and integration test suite verifying JIT arithmetic, Kleene ternary logic truth tables, struct access, loops, Two-Tier I/O, and `examples/reaktor.rpl`.
 - **Architecture & Roadmap:** See [ROADMAP.md](ROADMAP.md) for phased execution strategy and self-hosting bootstrap milestones.
 
 ---
@@ -177,8 +178,9 @@
 - **Location:** `crates/rpl_lsp/`
 - **Status:** ✅ **Complete** — Language Server Protocol (LSP) daemon powering IDE tooling (`rpl lsp`) across Zed, VS Code, and Antigravity IDE.
 - **Key Modules & Files:**
-  - `src/lib.rs`: `tower-lsp` LanguageServer implementation, `compute_diagnostics` (syntax and Kleene ternary type checking), and hover documentation.
-  - `tests/lsp_tests.rs`: Comprehensive test suite verifying diagnostic generation (`[- - -]` syntax and `[+ - -]` type errors), clean document reporting, and hover tooltips.
+  - `src/lib.rs`: `tower-lsp` LanguageServer implementation, `compute_diagnostics` (syntax and Kleene ternary type checking), LSP 3.17 semantic tokens (including `File` and I/O functions), and hover documentation.
+  - `tests/lsp_tests.rs`: Comprehensive test suite verifying diagnostic generation (`[- - -]` syntax and `[+ - -]` type errors), clean document reporting, and hover tooltips for types and built-in I/O functions.
+- **Editor Extensions & Setup:** See [IDE_SETUP.md](IDE_SETUP.md), `editors/code/` (VS Code / Antigravity IDE), and `editors/zed/` (native Zed extension).
 - **Editor Extensions & Setup:** See [IDE_SETUP.md](IDE_SETUP.md), `editors/code/` (VS Code / Antigravity IDE), and `editors/zed/` (native Zed extension).
 
 ---

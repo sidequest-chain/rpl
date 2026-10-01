@@ -1,0 +1,12 @@
+// Functions and Pipe Operator Chaining Test Fixture
+
+fn double_num(n: Int) -> Int:
+    return n * 2
+end fn
+
+fn add_ten(n: Int) -> Int:
+    return n + 10
+end fn
+
+let res = 5 |> double_num |> add_ten
+println("Piped calculation: $res")

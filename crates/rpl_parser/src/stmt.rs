@@ -542,6 +542,7 @@ impl<'a> Parser<'a> {
                 "Trit" => Type::Trit,
                 "String" => Type::String,
                 "Byte" => Type::Byte,
+                "File" => Type::File,
                 _ => Type::Named(name),
             };
 

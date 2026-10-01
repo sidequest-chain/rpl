@@ -363,3 +363,69 @@ end
         "Kleene ternary logic expressions should type check to Trit"
     );
 }
+
+#[test]
+fn test_io_typechecking_positive() {
+    let source = r#"
+let content = read_file("test.txt")
+let w_ok = write_file("test.txt", "hello")
+let a_ok = append_file("test.txt", "world")
+let f: File = open_file("stream.log", "w")
+let wl_ok = write_line(f, "line 1")
+close_file(f)
+"#;
+    let program = parse_program(source).expect("parse error");
+    let result = check_program(&program);
+    assert!(
+        result.is_ok(),
+        "I/O builtins should pass type checking: {result:?}"
+    );
+}
+
+#[test]
+fn test_io_use_after_close_file_negative() {
+    let source = r#"
+let f = open_file("audit.log", "w")
+write_line(f, "Starting")
+close_file(f)
+write_line(f, "Attempt write after close")
+"#;
+    let program = parse_program(source).expect("parse error");
+    let result = check_program(&program);
+    assert!(
+        result.is_err(),
+        "Expected UseOfMovedValue error after close_file"
+    );
+    let errors = result.unwrap_err();
+    assert!(
+        errors.iter().any(|e| matches!(
+            e,
+            TypeError::UseOfMovedValue { name, .. } if name == "f"
+        )),
+        "Expected UseOfMovedValue for 'f', got: {errors:?}"
+    );
+}
+
+#[test]
+fn test_io_pipe_close_file_negative() {
+    let source = r#"
+let f = open_file("audit.log", "w")
+f |> close_file
+write_line(f, "Attempt write after piped close")
+"#;
+    let program = parse_program(source).expect("parse error");
+    let result = check_program(&program);
+    assert!(
+        result.is_err(),
+        "Expected UseOfMovedValue error after piped close_file"
+    );
+    let errors = result.unwrap_err();
+    assert!(
+        errors.iter().any(|e| matches!(
+            e,
+            TypeError::UseOfMovedValue { name, .. } if name == "f"
+        )),
+        "Expected UseOfMovedValue for 'f', got: {errors:?}"
+    );
+}
+

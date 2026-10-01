@@ -540,7 +540,7 @@ impl TypeChecker {
             Expr::Pipe { left, right, .. } => {
                 let left_ty = self.check_expr(left);
 
-                match right.as_ref() {
+                let res = match right.as_ref() {
                     Expr::Call { callee, args, span } => {
                         self.resolve_call(callee, args, Some(left_ty), *span)
                     }
@@ -549,7 +549,39 @@ impl TypeChecker {
                         self.resolve_call(&callee, &[], Some(left_ty), *span)
                     }
                     _ => self.check_expr(right),
+                };
+
+                // Move check for piped argument into sink function (e.g. close_file)
+                if let Expr::Identifier(var_name, _) = left.as_ref() {
+                    if let Some(binding) = self.env.lookup_var(var_name) {
+                        if !self.is_copy_type(&binding.ty) {
+                            let fn_name = match right.as_ref() {
+                                Expr::Call { callee, .. } => {
+                                    if let Expr::Identifier(name, _) = callee.as_ref() {
+                                        Some(name.as_str())
+                                    } else {
+                                        None
+                                    }
+                                }
+                                Expr::Identifier(name, _) => Some(name.as_str()),
+                                _ => None,
+                            };
+                            if let Some(name) = fn_name {
+                                if name == "close_file"
+                                    || self
+                                        .env
+                                        .lookup_fn(name)
+                                        .map(|s| s.return_type.is_none())
+                                        .unwrap_or(false)
+                                {
+                                    self.env.mark_moved(var_name);
+                                }
+                            }
+                        }
+                    }
                 }
+
+                res
             }
 
             Expr::Call { callee, args, span } => self.resolve_call(callee, args, None, *span),
@@ -732,12 +764,15 @@ impl TypeChecker {
                 if let Some(binding) = self.env.lookup_var(var_name) {
                     if !self.is_copy_type(&binding.ty) {
                         let is_sink = match callee {
-                            Expr::Identifier(fn_name, _) => self
-                                .env
-                                .lookup_fn(fn_name)
-                                .map(|s| s.return_type.is_none())
-                                .unwrap_or(false),
-                            Expr::MemberAccess { field, .. } => field == "send",
+                            Expr::Identifier(fn_name, _) => {
+                                fn_name == "close_file"
+                                    || self
+                                        .env
+                                        .lookup_fn(fn_name)
+                                        .map(|s| s.return_type.is_none())
+                                        .unwrap_or(false)
+                            }
+                            Expr::MemberAccess { field, .. } => field == "send" || field == "close",
                             _ => false,
                         };
                         if is_sink {

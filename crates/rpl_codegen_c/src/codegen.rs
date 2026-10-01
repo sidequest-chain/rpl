@@ -37,6 +37,8 @@ fn sanitize_ident(name: &str) -> String {
         | "volatile" | "char" | "do" | "extern" | "if" | "return" | "static" | "while" => {
             format!("rpl_{name}")
         }
+        "input" | "read_file" | "write_file" | "append_file" | "open_file" | "read_line"
+        | "write_line" | "close_file" => format!("rpl_{name}"),
         _ => name.to_string(),
     }
 }
@@ -67,6 +69,14 @@ impl CGenerator {
         fn_return_types.insert("rpl_trit_to_str".to_string(), Type::String);
         fn_return_types.insert("trit_to_str".to_string(), Type::String);
         fn_return_types.insert("to_lower".to_string(), Type::String);
+        fn_return_types.insert("input".to_string(), Type::String);
+        fn_return_types.insert("read_file".to_string(), Type::String);
+        fn_return_types.insert("write_file".to_string(), Type::Bool);
+        fn_return_types.insert("append_file".to_string(), Type::Bool);
+        fn_return_types.insert("open_file".to_string(), Type::File);
+        fn_return_types.insert("read_line".to_string(), Type::String);
+        fn_return_types.insert("write_line".to_string(), Type::Bool);
+        fn_return_types.insert("close_file".to_string(), Type::Named("Unit".into()));
 
         Self {
             type_decls: Vec::new(),
@@ -972,6 +982,7 @@ impl CGenerator {
                 }
                 Type::Int
             }
+            Expr::Pipe { right, .. } => self.infer_expr_type(right),
             _ => Type::Int,
         }
     }

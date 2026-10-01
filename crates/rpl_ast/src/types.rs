@@ -59,6 +59,10 @@ pub enum Type {
     /// Thread-safe lock-free channel (`Channel[T]`).
     Channel(Box<Type>),
 
+    // System resource handles
+    /// Opaque system file stream handle (`File`).
+    File,
+
     // Custom named types
     /// User-defined struct or enum type name (`Named(String)`).
     Named(String),
@@ -138,6 +142,7 @@ impl fmt::Display for Type {
             Self::Option(elem) => write!(f, "Option[{elem}]"),
             Self::Result(ok, err) => write!(f, "Result[{ok}, {err}]"),
             Self::Channel(elem) => write!(f, "Channel[{elem}]"),
+            Self::File => write!(f, "File"),
             Self::Named(name) => write!(f, "{name}"),
         }
     }

@@ -204,3 +204,60 @@ print "Sensor $s.id state: $s.active"
     assert!(c_code.contains("rpl_trit_to_str(s.active)"));
 }
 
+#[test]
+fn test_io_codegen_and_execution() {
+    let source = r#"
+let test_file = "temp_c_io_test.txt"
+write_file(test_file, "Line A\nLine B\n")
+let content = read_file(test_file)
+println("Content: $content")
+"#;
+    let program = parse_program(source).expect("Failed to parse I/O source");
+    let c_code = generate_c(&program).expect("Failed to generate C code");
+
+    assert!(c_code.contains("rpl_write_file"));
+    assert!(c_code.contains("rpl_read_file"));
+
+    let temp_dir = std::env::temp_dir();
+    let c_path = temp_dir.join("test_rpl_io_generated.c");
+    let exe_path = temp_dir.join(if cfg!(windows) { "test_rpl_io_generated.exe" } else { "test_rpl_io_generated" });
+
+    std::fs::write(&c_path, &c_code).expect("Failed to write temporary C file");
+
+    let compiler_cmd = if std::process::Command::new("zig").arg("version").output().is_ok() {
+        Some(("zig", vec!["cc", "-std=c99", c_path.to_str().unwrap(), "-o", exe_path.to_str().unwrap()]))
+    } else if std::process::Command::new("clang").arg("--version").output().is_ok() {
+        Some(("clang", vec!["-std=c99", c_path.to_str().unwrap(), "-o", exe_path.to_str().unwrap()]))
+    } else if std::process::Command::new("gcc").arg("--version").output().is_ok() {
+        Some(("gcc", vec!["-std=c99", c_path.to_str().unwrap(), "-o", exe_path.to_str().unwrap()]))
+    } else {
+        None
+    };
+
+    if let Some((prog, args)) = compiler_cmd {
+        let compile_output = std::process::Command::new(prog)
+            .args(&args)
+            .output()
+            .expect("Failed to compile generated C code");
+
+        assert!(
+            compile_output.status.success(),
+            "C compilation of I/O test failed: {}",
+            String::from_utf8_lossy(&compile_output.stderr)
+        );
+
+        let run_output = std::process::Command::new(&exe_path)
+            .current_dir(&temp_dir)
+            .output()
+            .expect("Failed to run compiled C binary");
+
+        let stdout = String::from_utf8_lossy(&run_output.stdout);
+        assert!(stdout.replace("\r\n", "\n").contains("Content: Line A\nLine B\n"), "Actual stdout was: {stdout:?}, stderr: {:?}", String::from_utf8_lossy(&run_output.stderr));
+
+        let _ = std::fs::remove_file(c_path);
+        let _ = std::fs::remove_file(exe_path);
+        let _ = std::fs::remove_file(temp_dir.join("temp_c_io_test.txt"));
+    }
+}
+
+

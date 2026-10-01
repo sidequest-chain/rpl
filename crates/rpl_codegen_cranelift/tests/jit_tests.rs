@@ -106,3 +106,30 @@ fn test_jit_run_reaktor_example() {
     let exit_code = run_program(&program).expect("Failed to execute reaktor.rpl in Cranelift JIT");
     assert_eq!(exit_code, 0);
 }
+
+#[test]
+fn test_jit_io_complete() {
+    let source = r#"
+let test_file = "test_jit_io_temp.txt"
+write_file(test_file, "JIT Line 1\n")
+append_file(test_file, "JIT Line 2\n")
+let content = read_file(test_file)
+
+let stream_file = "test_jit_stream_temp.log"
+let h = open_file(stream_file, "w")
+write_line(h, "Stream line from JIT")
+close_file(h)
+
+let r = open_file(stream_file, "r")
+let l = read_line(r)
+close_file(r)
+0
+"#;
+    let program = parse_program(source).expect("Failed to parse JIT I/O test");
+    let exit_code = run_program(&program).expect("Failed to execute JIT I/O test");
+    assert_eq!(exit_code, 0);
+
+    let _ = std::fs::remove_file("test_jit_io_temp.txt");
+    let _ = std::fs::remove_file("test_jit_stream_temp.log");
+}
+

@@ -1,13 +1,13 @@
 # RPL Compiler Capabilities & Implementation Status
 
-> **Target Version:** 0.2+3 "Tohtlane"  
+> **Target Version:** 0.2+4 "Tohtlane"  
 > **Purpose:** Authoritative technical snapshot of currently implemented, working compiler features versus roadmap items. Designed specifically for LLM agents, compiler developers, and architectural discussions to propose well-scoped language extensions without drifting from the active codebase.
 
 ---
 
 ## 1. Executive Summary
 
-RPL (Running Pseudo Language) is a compiled, zero-GC systems language designed to execute pseudocode with bare-metal speed. As of version `0.2+3`, the compiler features a dual-backend architecture:
+RPL (Running Pseudo Language) is a compiled, zero-GC systems language designed to execute pseudocode with bare-metal speed. As of version `0.2+4`, the compiler features a dual-backend architecture:
 1. **Phase 1: C99 Transpiler (`rpl_codegen_c`)** — Generates human-readable, self-contained C99 compiled via GCC/Clang/MSVC.
 2. **Phase 2: In-Memory Cranelift JIT (`rpl_codegen_cranelift`)** — In-memory machine code compilation executing `.rpl` files directly with sub-10ms latency via `rpl run`.
 3. **Developer Tooling (`rpl_lsp`, `rpl_cli`)** — Built-in CLI commands (`run`, `build`, `check`, `lsp`) and zero-dependency LSP supporting semantic tokens, live hover documentation, and syntax/type diagnostics for VS Code and Zed.
@@ -72,14 +72,33 @@ The following language constructs are fully implemented across the parser, typec
   > [!WARNING]
   > **Lambdas are currently untyped inline AST expressions only.**
   > - Parameters must be bare identifiers without type annotations: `x => x + 1` or `(x, y) => x + y`. Syntax like `(x: Int) => ...` is rejected by the parser.
-  > - **First-class callable variable bindings (`let f = ...; f()`) are NOT supported in 0.2+3.** Functions cannot be stored in variables and invoked as `f(...)`. Always use top-level `fn name(...)` declarations for callable logic.
+  > - **First-class callable variable bindings (`let f = ...; f()`) are NOT supported in 0.2+4.** Functions cannot be stored in variables and invoked as `f(...)`. Always use top-level `fn name(...)` declarations for callable logic.
+
+### 2.6. Two-Tier Input / Output System (Convenience & Streams)
+RPL features a native, zero-dependency two-tier I/O architecture combining high-level pseudocode convenience with long-lived system streaming:
+- **Layer 1: Zero-Ceremony Pseudocode Convenience (Atomic)**
+  - `input() -> String`: Reads a line from `stdin` with trailing `\r`/`\n` stripped.
+  - `read_file(path: String) -> String`: Reads the entire file into memory and immediately closes it. Gracefully returns `""` on I/O error.
+  - `write_file(path: String, content: String) -> Bool`: Overwrites or creates the file with content and immediately closes it. Returns `true` on success.
+  - `append_file(path: String, content: String) -> Bool`: Appends content to the end of the file and immediately closes it. Returns `true` on success.
+  - Seamless pipeline composition: `"telemetry.log" |> read_file |> println`.
+- **Layer 2: Long-Lived System Streams & Handles (Daemons / Servers)**
+  - `File`: First-class opaque handle type representing an active system stream (`FILE*` in C99, `*mut JitFile` in Cranelift JIT).
+  - `open_file(path: String, mode: String) -> File`: Opens a file stream with mode `"r"`, `"w"`, or `"a"`.
+  - `read_line(file: File) -> String`: Reads the next line from the open file handle without closing it.
+  - `write_line(file: File, line: String) -> Bool`: Writes a line of text followed by newline to the open stream with automatic flush (`fflush`), keeping the file open.
+  - `close_file(file: File)`: Safely flushes and closes the stream handle.
+- **Affine Ownership & Static Use-After-Close Protection:**
+  - `close_file(f)` and `f |> close_file` take ownership of `f` (move semantics).
+  - Any subsequent attempt to read, write, or re-close `f` is rejected at compile time by the typechecker with `Use of moved value 'f'`, preventing dangling handle vulnerabilities.
 
 > [!IMPORTANT]
 > **Strict Code Generation Directives for AI Agents & Developers:**
 > 1. **Functions:** Always declare callable logic using `fn name(param: Type) -> RetType: ... end fn`. Never use `let f = ... => ...` with the intention of calling `f()`.
-> 2. **Parameter Types:** Function parameters require explicit uppercase types (`Int`, `Float`, `Bool`, `String`, `Trit`, or a struct name). Lowercase types like `int` are rejected.
+> 2. **Parameter Types:** Function parameters require explicit uppercase types (`Int`, `Float`, `Bool`, `String`, `Trit`, `File`, or a struct name). Lowercase types like `int` are rejected.
 > 3. **Block Delimiters:** Scopes always open with `:` and close with `end` or labeled `end <keyword>` (`end fn`, `end for`, `end match`, `end type`). Never use curly braces `{}` or semicolons `;`.
 > 4. **Print & Interpolation:** `println("Count: $counter, Sensor: $s.id")` works out-of-the-box in both C99 and Cranelift JIT.
+> 5. **File I/O:** Use `read_file` / `write_file` for quick scripts and `open_file` / `write_line` / `close_file` for streaming loggers and daemons. Always ensure `close_file` is called once per handle.
 
 ---
 
@@ -101,6 +120,11 @@ The following language constructs are fully implemented across the parser, typec
 | **String Interpolation (`$var`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_str_concat`) | ✅ Full (`rpl_jit_str_concat`) | ✅ Tokens |
 | **Match Statement** | ✅ Full | ✅ Exhaustive | ✅ Full (`switch` & `if-else`) | ⚠️ Simple literal & Trit | ✅ Exhaustive Err |
 | **Built-in `print` / `println`** | ✅ Full | ✅ Full | ✅ Full (`printf`) | ✅ Full (`stdout`) | ✅ Hover |
+| **Console Input (`input()`)** | ✅ Full | ✅ Full (`() -> String`) | ✅ Full (`rpl_input`) | ✅ Full (`rpl_jit_input`) | ✅ Hover |
+| **Convenience File I/O (`read_file`, `write_file`, `append_file`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_*`) | ✅ Full (`rpl_jit_*`) | ✅ Hover |
+| **System Stream Handle (`File`)** | ✅ Full | ✅ Full (Opaque) | ✅ Full (`rpl_file_t`) | ✅ Full (`*mut JitFile`) | ✅ Hover & Tokens |
+| **Stream File Operations (`open_file`, `read_line`, `write_line`)** | ✅ Full | ✅ Full | ✅ Full (`fopen`/`fgets`/`fputs`) | ✅ Full (`rpl_jit_*`) | ✅ Hover |
+| **Affine Stream Closing (`close_file`)** | ✅ Full | ✅ Enforced Move | ✅ Full (`fclose`) | ✅ Full (`rpl_jit_close_file`) | ✅ Hover & Move Err |
 | **Lambdas / Closures (`=>`)** | ✅ Parsed | ⚠️ Untyped expr only | ⚠️ Prototype | ⚠️ Prototype | ✅ Tokens |
 | **Callable Variables (`let f = ...; f()`)** | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ TypeError |
 | **List Literals (`[1, 2, 3]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |
@@ -115,13 +139,13 @@ The following language constructs are fully implemented across the parser, typec
 
 ```text
 crates/
-├── rpl_ast/               # Pure AST data structures, Span coordinates, Kleene Trit logic
+├── rpl_ast/               # Pure AST data structures, Span coordinates, Kleene Trit logic, Type::File
 ├── rpl_lexer/             # Logos-based zero-copy lexer, string interpolation parser
 ├── rpl_parser/            # Recursive descent statements + Pratt expression parsing
-├── rpl_typechecker/       # Semantic analysis, type inference, Trit exhaustiveness, move checking
-├── rpl_codegen_c/         # Standalone C99 transpiler emitting clean, compilable C
-├── rpl_codegen_cranelift/ # Fast in-memory JIT code generation via Cranelift JITModule
-├── rpl_lsp/               # Zero-dependency Language Server Protocol implementation
+├── rpl_typechecker/       # Semantic analysis, type inference, Trit exhaustiveness, affine move checking
+├── rpl_codegen_c/         # Standalone C99 transpiler with rpl_runtime.h (Two-Tier I/O)
+├── rpl_codegen_cranelift/ # Fast in-memory JIT code generation and runtime ABI bridges
+├── rpl_lsp/               # Zero-dependency Language Server Protocol (hover, semantic tokens, diagnostics)
 └── rpl_cli/               # Unified CLI binary (run, build, check, lsp)
 ```
 
@@ -132,10 +156,10 @@ crates/
 When brainstorming or requesting proposals from a partner AI model, focus on these concrete, architecturally ready areas:
 
 ### Opportunity A: Standard Library Built-ins & Intrinsics
-- **Current State:** Only `print` and `println` exist as intrinsics in C99 and Cranelift runtime bridges.
+- **Current State:** Zero-dependency I/O is fully implemented across C99 and Cranelift JIT (`input`, `read_file`, `write_file`, `append_file`, `open_file`, `read_line`, `write_line`, `close_file`).
 - **Discussion Prompts for Partner:**
   - What minimal set of math built-ins (`abs`, `min`, `max`, `sqrt`, `pow`) should be wired directly into the compiler?
-  - How should file I/O (`read_file(path) -> String`, `write_file(path, content)`) be bridged cleanly in C99 and Cranelift without adding external C dependencies?
+  - Should standard string manipulation built-ins (`length`, `starts_with`, `trim`) be introduced as intrinsics or standard methods?
 
 ### Opportunity B: Array / Slice Collection Mechanics
 - **Current State:** `Expr::List` and `Expr::Index` exist in AST and parser, but have not been hooked to a deterministic heap/stack layout in `rpl_codegen_c` or Cranelift.

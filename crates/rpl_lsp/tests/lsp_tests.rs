@@ -127,6 +127,20 @@ end
     let hover_type = get_hover_for_word("Sensor", source);
     assert!(hover_type.is_some());
     assert!(hover_type.unwrap().contains("type Sensor:"));
+
+    // Hover over built-in type File
+    let hover_file = get_hover_for_word("File", source);
+    assert!(hover_file.is_some());
+    assert!(hover_file.unwrap().contains("type File"));
+
+    // Hover over built-in I/O functions
+    let hover_read = get_hover_for_word("read_file", source);
+    assert!(hover_read.is_some());
+    assert!(hover_read.unwrap().contains("fn read_file"));
+
+    let hover_close = get_hover_for_word("close_file", source);
+    assert!(hover_close.is_some());
+    assert!(hover_close.unwrap().contains("Consumes ownership"));
 }
 
 #[test]

@@ -1,0 +1,34 @@
+// daemon_logger.rpl — Long-lived telemetry daemon logging in RPL
+// Demonstrates persistent file handles (Layer 2) and affine move cleanup
+
+fn log_event(file: File, level: String, message: String) -> Bool:
+    let entry = "[$level] $message"
+    return write_line(file, entry)
+end fn
+
+println("Starting Telemetry Daemon Logger...")
+
+// Open stream handle in append mode ("a") for long-lived daemon logging
+let log_file = "telemetry_daemon.log"
+let log_handle = open_file(log_file, "a")
+
+log_event(log_handle, "INFO", "Telemetry service daemon started")
+log_event(log_handle, "DEBUG", "Sensors connected: 4 active units")
+
+// Simulate event loop recordings
+for tick in 1..3:
+    let msg = "Heartbeat pulse tick #$tick - All metrics nominal"
+    log_event(log_handle, "TRACE", msg)
+end for
+
+log_event(log_handle, "INFO", "Telemetry daemon shutting down cleanly")
+
+// Safely close the handle (moves ownership, preventing use-after-close bugs)
+close_file(log_handle)
+
+println("Daemon log completed and closed safely.")
+
+// Layer 1 convenience inspection: read back complete log file
+let full_log = read_file(log_file)
+println("--- Final Log Dump ---")
+println(full_log)

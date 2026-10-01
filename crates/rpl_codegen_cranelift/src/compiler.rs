@@ -220,6 +220,56 @@ impl Compiler {
         sig_slen.returns.push(AbiParam::new(types::I64));
         module.declare_function("rpl_jit_str_len", Linkage::Import, &sig_slen)?;
 
+        // input: () -> ptr
+        let mut sig_input = module.make_signature();
+        sig_input.returns.push(AbiParam::new(ptr_ty));
+        module.declare_function("rpl_jit_input", Linkage::Import, &sig_input)?;
+
+        // read_file: (ptr) -> ptr
+        let mut sig_read_file = module.make_signature();
+        sig_read_file.params.push(AbiParam::new(ptr_ty));
+        sig_read_file.returns.push(AbiParam::new(ptr_ty));
+        module.declare_function("rpl_jit_read_file", Linkage::Import, &sig_read_file)?;
+
+        // write_file: (ptr, ptr) -> i8
+        let mut sig_write_file = module.make_signature();
+        sig_write_file.params.push(AbiParam::new(ptr_ty));
+        sig_write_file.params.push(AbiParam::new(ptr_ty));
+        sig_write_file.returns.push(AbiParam::new(types::I8));
+        module.declare_function("rpl_jit_write_file", Linkage::Import, &sig_write_file)?;
+
+        // append_file: (ptr, ptr) -> i8
+        let mut sig_append_file = module.make_signature();
+        sig_append_file.params.push(AbiParam::new(ptr_ty));
+        sig_append_file.params.push(AbiParam::new(ptr_ty));
+        sig_append_file.returns.push(AbiParam::new(types::I8));
+        module.declare_function("rpl_jit_append_file", Linkage::Import, &sig_append_file)?;
+
+        // open_file: (ptr, ptr) -> ptr
+        let mut sig_open_file = module.make_signature();
+        sig_open_file.params.push(AbiParam::new(ptr_ty));
+        sig_open_file.params.push(AbiParam::new(ptr_ty));
+        sig_open_file.returns.push(AbiParam::new(ptr_ty));
+        module.declare_function("rpl_jit_open_file", Linkage::Import, &sig_open_file)?;
+
+        // read_line: (ptr) -> ptr
+        let mut sig_read_line = module.make_signature();
+        sig_read_line.params.push(AbiParam::new(ptr_ty));
+        sig_read_line.returns.push(AbiParam::new(ptr_ty));
+        module.declare_function("rpl_jit_read_line", Linkage::Import, &sig_read_line)?;
+
+        // write_line: (ptr, ptr) -> i8
+        let mut sig_write_line = module.make_signature();
+        sig_write_line.params.push(AbiParam::new(ptr_ty));
+        sig_write_line.params.push(AbiParam::new(ptr_ty));
+        sig_write_line.returns.push(AbiParam::new(types::I8));
+        module.declare_function("rpl_jit_write_line", Linkage::Import, &sig_write_line)?;
+
+        // close_file: (ptr) -> void
+        let mut sig_close_file = module.make_signature();
+        sig_close_file.params.push(AbiParam::new(ptr_ty));
+        module.declare_function("rpl_jit_close_file", Linkage::Import, &sig_close_file)?;
+
         Ok(())
     }
 
@@ -878,6 +928,22 @@ impl Compiler {
             }
 
             Expr::Pipe { left, right, .. } => {
+                let right_fn_name = match right.as_ref() {
+                    Expr::Identifier(name, _) => Some(name.as_str()),
+                    Expr::Call { callee, .. } => {
+                        if let Expr::Identifier(name, _) = callee.as_ref() {
+                            Some(name.as_str())
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                };
+
+                if right_fn_name == Some("print") || right_fn_name == Some("println") {
+                    return self.compile_print_call(module, builder, &[left.as_ref().clone()]);
+                }
+
                 // Lower pipe `left |> right`: passes left as first parameter to right call
                 let left_val = self.compile_expr(module, builder, left, None)?;
                 match right.as_ref() {
@@ -991,6 +1057,38 @@ impl Compiler {
         if let Expr::Identifier(fn_name, _) = callee {
             if let Some(meta) = self.functions.get(fn_name).cloned() {
                 let local_fn = module.declare_func_in_func(meta.func_id, builder.func);
+                let call_inst = builder.ins().call(local_fn, &args);
+                let results = builder.inst_results(call_inst);
+                if let Some(res) = results.first() {
+                    return Ok(*res);
+                } else {
+                    return Ok(builder.ins().iconst(types::I64, 0));
+                }
+            }
+
+            let runtime_fn_name = match fn_name.as_str() {
+                "input" => Some("rpl_jit_input"),
+                "read_file" => Some("rpl_jit_read_file"),
+                "write_file" => Some("rpl_jit_write_file"),
+                "append_file" => Some("rpl_jit_append_file"),
+                "open_file" => Some("rpl_jit_open_file"),
+                "read_line" => Some("rpl_jit_read_line"),
+                "write_line" => Some("rpl_jit_write_line"),
+                "close_file" => Some("rpl_jit_close_file"),
+                _ => None,
+            };
+
+            if let Some(rt_name) = runtime_fn_name {
+                let fn_id = module
+                    .get_name(rt_name)
+                    .and_then(|f| match f {
+                        cranelift_module::FuncOrDataId::Func(id) => Some(id),
+                        _ => None,
+                    })
+                    .ok_or_else(|| CodegenCraneliftError::UndefinedSymbol {
+                        name: rt_name.to_string(),
+                    })?;
+                let local_fn = module.declare_func_in_func(fn_id, builder.func);
                 let call_inst = builder.ins().call(local_fn, &args);
                 let results = builder.inst_results(call_inst);
                 if let Some(res) = results.first() {
@@ -1364,8 +1462,32 @@ impl Compiler {
                     self.infer_expr_type(expr)
                 }
             }
+            Expr::Pipe { right, .. } => match right.as_ref() {
+                Expr::Call { .. } => self.infer_expr_type(right),
+                Expr::Identifier(name, _) => match name.as_str() {
+                    "print" | "println" | "close_file" => Type::Int,
+                    "read_file" | "read_line" => Type::String,
+                    "write_file" | "append_file" | "write_line" => Type::Bool,
+                    "open_file" => Type::File,
+                    _ => {
+                        if let Some(meta) = self.functions.get(name) {
+                            meta.return_type.clone().unwrap_or(Type::Int)
+                        } else {
+                            Type::Int
+                        }
+                    }
+                },
+                _ => self.infer_expr_type(right),
+            },
             Expr::Call { callee, .. } => {
                 if let Expr::Identifier(fn_name, _) = callee.as_ref() {
+                    match fn_name.as_str() {
+                        "input" | "read_file" | "read_line" => return Type::String,
+                        "write_file" | "append_file" | "write_line" => return Type::Bool,
+                        "open_file" => return Type::File,
+                        "close_file" => return Type::Int,
+                        _ => {}
+                    }
                     if let Some(meta) = self.functions.get(fn_name) {
                         return meta.return_type.clone().unwrap_or(Type::Int);
                     }

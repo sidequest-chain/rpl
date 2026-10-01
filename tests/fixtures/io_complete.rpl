@@ -1,0 +1,33 @@
+// Comprehensive Two-Tier I/O Test Fixture (Convenience + Stream Layer)
+
+let test_path = "fixture_io_temp.txt"
+
+// 1. Layer 1 Convenience: write_file
+let w_ok = write_file(test_path, "Line 1\n")
+println("write status: $w_ok")
+
+// 2. Layer 1 Convenience: append_file
+let a_ok = append_file(test_path, "Line 2\n")
+println("append status: $a_ok")
+
+// 3. Layer 1 Convenience: read_file
+let content = read_file(test_path)
+println("Content: $content")
+
+// 4. Pipe operator composition
+test_path |> read_file |> println
+
+// 5. Layer 2 System Streams: open_file, write_line, close_file
+let log_path = "fixture_stream_temp.log"
+let h = open_file(log_path, "w")
+write_line(h, "Entry A")
+write_line(h, "Entry B")
+close_file(h)
+
+// 6. Layer 2 System Streams: open_file in read mode, read_line
+let r = open_file(log_path, "r")
+let l1 = read_line(r)
+let l2 = read_line(r)
+println("Read 1: $l1")
+println("Read 2: $l2")
+close_file(r)

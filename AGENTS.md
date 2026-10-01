@@ -35,6 +35,10 @@ This document establishes operational boundaries, engineering standards, and exe
    * **Surgical Inspection Only:** Files may only be opened when they need immediate editing or when a specific internal implementation detail must be verified. Blind scanning across crates is prohibited.
    * **Continuous Currency (Definition of Done):** Whenever new AST nodes, types, compiler passes, or CLI commands are added or modified, the agent must update `docs/CODE_MAP.md` as part of the task completion (Zero Drift).
 
+7. **Mandatory Fresh Binary Rebuild for RPL Verification (Ironclad Invariant):**
+   * **Stale Binary Prohibition:** When testing or verifying `.rpl` files, the agent must **never** rely on a previously existing or cached compiler binary.
+   * **Mandatory Build Step:** Immediately after Rust tests (`cargo test --workspace`) pass and before executing any `.rpl` files, fixtures, or examples, a fresh `rpl` CLI binary must be compiled explicitly via `cargo build --bin rpl` (or `cargo build --workspace`) on the target host platform (Windows `rpl.exe` or Linux/macOS `rpl`).
+
 ---
 
 ## 2. Workspace Architecture
@@ -126,16 +130,42 @@ Every autonomous agent must execute and satisfy this full checklist before propo
    ```
    *Must pass with zero warnings.*
 
-4. **Diff Review:**
+4. **Fresh RPL CLI Binary Rebuild (Mandatory Ironclad Pre-Condition for RPL Tests):**
+   * **Stale Binary Prohibition:** Never verify `.rpl` files with a stale or uncompiled binary.
+   * Immediately after Rust workspace tests pass, the autonomous agent MUST compile a fresh `rpl` binary before executing any `.rpl` test fixtures (`tests/*.rpl`, `examples/*.rpl`):
+     ```bash
+     cargo build --bin rpl
+     ```
+     *(Or `cargo build --workspace`)*
+   * **Binary Path Resolution by Platform:**
+     - **Windows:** `target/debug/rpl.exe` (or `target/release/rpl.exe`)
+     - **Linux / macOS:** `target/debug/rpl` (or `target/release/rpl`)
+   * **Verification Execution:**
+     Run integration tests using the freshly compiled binary:
+     ```bash
+     # Windows PowerShell:
+     .\target\debug\rpl.exe run tests/test_feature.rpl
+     .\target\debug\rpl.exe build tests/test_feature.rpl
+     .\target\debug\rpl.exe check tests/test_feature.rpl
+
+     # Linux / macOS:
+     ./target/debug/rpl run tests/test_feature.rpl
+     ./target/debug/rpl build tests/test_feature.rpl
+     ./target/debug/rpl check tests/test_feature.rpl
+     ```
+   * **Windows Process-Locking Precaution (`os error 5 / Access is denied`):**
+     If an active Language Server or editor background process (`rpl.exe lsp`) holds an exclusive file lock on `target/release/rpl.exe` or `target/debug/rpl.exe`, the agent or user must terminate the stale process (`Stop-Process -Name rpl -Force`) or compile under a non-conflicting profile before rebuilding.
+
+5. **Diff Review:**
    ```bash
    git diff
    ```
    *Verify that no unrelated files, comments, or debug statements were inadvertently modified.*
 
-5. **Code Map Synchronization (Definition of Done):**
+6. **Code Map Synchronization (Definition of Done):**
    *Verify that any new or modified compiler modules, AST variants, or CLI commands are fully reflected in `docs/CODE_MAP.md`.*
 
-6. **Explicit Confirmation for Git Actions (User-Only Push):**
+7. **Explicit Confirmation for Git Actions (User-Only Push):**
    *Present test results and summary to the user. Await explicit user confirmation before any `git add` or `git commit`. Never commit unsolicited, and never execute `git push` (remote pushes are strictly manual by the user).*
 
 If any verification step fails, the agent must document the root cause before applying the minimal corrective diff.
@@ -192,7 +222,7 @@ All agents and contributors must strictly enforce the following versioning disci
 1. **Format:** `MAJOR.MINOR[+PATCH] "Codename"` (e.g., base `0.2 "Tohtlane"`, or refined variant `0.2+1 "Tohtlane"`).
    - `MAJOR.MINOR`: Architectural generation and feature milestone. Initial milestone releases may appear in clean base form (e.g., `0.2 "Tohtlane"` without unnecessary `+0` noise).
    - `+PATCH`: Monotonic patch counter (`+1`, `+2`, `+3`, ... `+x`) designating substantive bug fixes, maintenance adjustments, or refined iterations within the given `MINOR` milestone. It strictly does not represent test suite counts.
-   - **Current active version:** `0.2+3 "Tohtlane"` (the verified third refined patch variant of Phase 2, with native Zed & VS Code semantic tokens & zero-dependency LSP).
+   - **Current active version:** `0.2+4 "Tohtlane"` (the verified fourth refined patch variant of Phase 2, with zero-ceremony and handle-based I/O architecture, affine move verification, native Zed & VS Code semantic tokens & zero-dependency LSP).
    - `"Codename"`: Public domain folklore/mythology names from F. R. Kreutzwald's fairy tales (1866).
    - **No Trits in version strings:** The version string itself MUST NOT contain Trit symbols (`+`, `?`, `-`). Note that the `+` character preceding `PATCH` designates build/patch metadata per SemVer 2.0, not a ternary truth value.
 

@@ -7,6 +7,20 @@ and this project adheres to the RPL Versioning Policy (`MAJOR.MINOR[+PATCH] "Cod
 
 ---
 
+## [0.2+4] "Tohtlane" — 2026-10-01
+
+### Added
+- **Two-Tier I/O Architecture:** Native input and file processing system spanning Layer 1 convenience pseudocode functions (`input`, `read_file`, `write_file`, `append_file`) and Layer 2 long-lived system stream handles (`File`, `open_file`, `read_line`, `write_line`, `close_file`).
+- **Static Affine Ownership Enforcement:** Compile-time linear/affine tracking that guarantees `close_file` consumes handle ownership, statically rejecting use-after-close bugs with actionable diagnostics.
+- **Dual-Backend Runtime Bridges:** Complete C99 runtime implementations in `rpl_runtime.h` (`rpl_file_t`, `rpl_read_file`, `rpl_write_file`, etc.) and ABI-compatible Cranelift JIT runtime symbols (`rpl_jit_*`, `JitFile`).
+- **IDE & LSP Tooling Integration:** Real-time hover signatures and semantic token highlighting for `File` and all eight I/O operations across Zed, VS Code, and Antigravity IDE.
+- **Automated Test Fixtures & Regressions:** Expanded `tests/fixtures/` suite with `io_complete.rpl`, `control_flow.rpl`, `functions_pipeline.rpl`, and negative compile-fail test `io_use_after_close.rpl`, wired to automated CLI regression test suite.
+
+### Changed
+- **Compiler Operating Guidelines (`AGENTS.md`):** Established ironclad invariant requiring fresh binary rebuild (`cargo build --bin rpl`) immediately after Rust workspace tests before executing any `.rpl` files.
+
+---
+
 ## [0.2+3] "Tohtlane" — 2026-10-01
 
 ### Added

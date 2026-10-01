@@ -1,0 +1,10 @@
+// Compile-Fail Test: Reject use of moved file handle after close_file
+
+let f = open_file("fixture_audit.log", "w")
+write_line(f, "Session init")
+
+// close_file moves ownership of handle f
+close_file(f)
+
+// MUST FAIL TYPECHECKING: Use of moved value 'f'
+write_line(f, "Illegal write after close")

@@ -474,5 +474,77 @@ In alignment with RPL's ternary logic (`true`, `false`, `unknown`), compiler sta
 
 ---
 
+## 13. Two-Tier Input and File I/O (Convenience & Streams)
+
+RPL unites textbook pseudocode readability with true systems programming capabilities through a native, zero-dependency **two-tier I/O model**:
+
+### 13.1 Layer 1: Zero-Ceremony Pseudocode Convenience (Atomic)
+For quick scripts, data processing, and rapid prototyping, Layer 1 operations open, execute, and immediately close files in a single atomic step without manual handle lifecycle management:
+
+- `input() -> String`: Reads a line of text from standard input (`stdin`), stripping any trailing `\r` or `\n`.
+- `read_file(path: String) -> String`: Reads the entire contents of a file into memory and closes the file handle immediately. If the file cannot be opened, it returns an empty string `""` gracefully.
+- `write_file(path: String, content: String) -> Bool`: Overwrites (or creates) the target file with the specified content and immediately closes it. Returns `true` on success, `false` on failure.
+- `append_file(path: String, content: String) -> Bool`: Appends the specified content to the end of the target file and immediately closes it. Returns `true` on success, `false` on failure.
+
+#### Pipeline Composition with Layer 1:
+Because these functions accept and return pure values, they compose naturally with the pipe operator (`|>`):
+```rpl
+// Write, append, read, and print in clean pseudocode flow
+write_file("status.txt", "INITIALIZED\n")
+append_file("status.txt", "HEALTHY\n")
+
+"status.txt" |> read_file |> println
+```
+
+---
+
+### 13.2 Layer 2: Long-Lived System Streams & Handles (Daemons & Servers)
+RPL is built for high-performance systems engineering. Network daemons, background telemetry loggers, and system servers cannot reopen files for every log entry. Layer 2 introduces persistent stream handles:
+
+- `File`: Opaque system resource handle backed by a standard stream pointer (`FILE*` in C99, `*mut JitFile` in Cranelift JIT).
+- `open_file(path: String, mode: String) -> File`: Opens a stream in the requested mode:
+  - `"r"`: Read mode.
+  - `"w"`: Write/truncate mode.
+  - `"a"`: Append mode (ideal for persistent logging).
+- `read_line(file: File) -> String`: Reads the next line from the open file handle without closing it.
+- `write_line(file: File, line: String) -> Bool`: Writes a line of text followed by a newline character to the stream and flushes the buffer (`fflush`), keeping the handle open.
+- `close_file(file: File)`: Flushes and safely closes the open file stream.
+
+```rpl
+// Long-lived telemetry logger
+let log = open_file("daemon.log", "a")
+
+write_line(log, "[INFO] Daemon started")
+write_line(log, "[DEBUG] Listening on port 8080")
+
+// Explicitly close the file when terminating
+close_file(log)
+```
+
+---
+
+### 13.3 Affine Ownership & Static Use-After-Close Protection
+Resource cleanup is statically verified by the RPL typechecker using **affine move semantics**. Calling `close_file(f)` (or using the pipe syntax `f |> close_file`) consumes ownership of the `File` handle:
+
+```rpl
+let f = open_file("audit.log", "w")
+write_line(f, "System boot")
+
+// close_file moves ownership of handle 'f'
+close_file(f)
+
+// COMPILE ERROR: Static verification rejects use-after-close!
+write_line(f, "Attempting write after close")
+// => [+ - -] Type errors: Use of moved value 'f'
+```
+
+This compile-time invariant prevents:
+1. Double-close vulnerabilities (`double free` on file descriptors).
+2. Dangling file handle operations.
+3. Silent data loss from writing to invalidated streams.
+
+---
+
 *For formal grammar specifications, refer to [PROJECT_SPEC.md](PROJECT_SPEC.md).*  
 *For compiler codebase architecture, refer to [CODE_MAP.md](CODE_MAP.md).*
+

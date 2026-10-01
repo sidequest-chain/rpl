@@ -135,5 +135,111 @@ RPL_INLINE const char* rpl_bool_to_str(bool v) {
     return v ? "true" : "false";
 }
 
+/* --- System Resource Handles --- */
+typedef FILE* rpl_file_t;
+
+/* --- Layer 1: Zero-Ceremony Convenience I/O --- */
+RPL_INLINE char* rpl_input(void) {
+    char buf[4096];
+    if (!fgets(buf, sizeof(buf), stdin)) {
+        char* empty = (char*)malloc(1);
+        if (empty) empty[0] = '\0';
+        return empty ? empty : "";
+    }
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) {
+        buf[--len] = '\0';
+    }
+    char* res = (char*)malloc(len + 1);
+    if (!res) return "";
+    memcpy(res, buf, len + 1);
+    return res;
+}
+
+RPL_INLINE char* rpl_read_file(const char* path) {
+    if (!path) return "";
+    FILE* f = fopen(path, "rb");
+    if (!f) return "";
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return "";
+    }
+    long size = ftell(f);
+    if (size < 0) {
+        fclose(f);
+        return "";
+    }
+    rewind(f);
+    char* buf = (char*)malloc((size_t)size + 1);
+    if (!buf) {
+        fclose(f);
+        return "";
+    }
+    size_t read_bytes = fread(buf, 1, (size_t)size, f);
+    buf[read_bytes] = '\0';
+    fclose(f);
+    return buf;
+}
+
+RPL_INLINE bool rpl_write_file(const char* path, const char* content) {
+    if (!path) return false;
+    FILE* f = fopen(path, "wb");
+    if (!f) return false;
+    if (content) {
+        fputs(content, f);
+    }
+    fclose(f);
+    return true;
+}
+
+RPL_INLINE bool rpl_append_file(const char* path, const char* content) {
+    if (!path) return false;
+    FILE* f = fopen(path, "ab");
+    if (!f) return false;
+    if (content) {
+        fputs(content, f);
+    }
+    fclose(f);
+    return true;
+}
+
+/* --- Layer 2: System Streams / Handles --- */
+RPL_INLINE rpl_file_t rpl_open_file(const char* path, const char* mode) {
+    if (!path || !mode) return NULL;
+    return fopen(path, mode);
+}
+
+RPL_INLINE char* rpl_read_line(rpl_file_t file) {
+    if (!file) return "";
+    char buf[4096];
+    if (!fgets(buf, sizeof(buf), file)) {
+        return "";
+    }
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) {
+        buf[--len] = '\0';
+    }
+    char* res = (char*)malloc(len + 1);
+    if (!res) return "";
+    memcpy(res, buf, len + 1);
+    return res;
+}
+
+RPL_INLINE bool rpl_write_line(rpl_file_t file, const char* line) {
+    if (!file) return false;
+    if (line) {
+        fputs(line, file);
+    }
+    fputc('\n', file);
+    fflush(file);
+    return true;
+}
+
+RPL_INLINE void rpl_close_file(rpl_file_t file) {
+    if (file) {
+        fclose(file);
+    }
+}
+
 #endif /* RPL_RUNTIME_H */
 "#;

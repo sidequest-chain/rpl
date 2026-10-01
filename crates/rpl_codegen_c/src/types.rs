@@ -24,6 +24,7 @@ pub fn to_c_type(ty: &Type) -> String {
         Type::Option(elem) => format!("{}*", to_c_type(elem)),
         Type::Result(ok, _) => to_c_type(ok),
         Type::Channel(_) => "void*".to_string(),
+        Type::File => "rpl_file_t".to_string(),
     }
 }
 

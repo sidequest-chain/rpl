@@ -1,0 +1,17 @@
+// Control Flow Test Fixture (Loops, Ranges, Conditionals)
+
+let mut sum = 0
+for i in 1..5:
+    sum = sum + i
+end for
+
+println("Loop sum 1..5: $sum")
+
+let val = 42
+if val > 100:
+    println("Large")
+else if val == 42:
+    println("Match 42")
+else:
+    println("Other")
+end if

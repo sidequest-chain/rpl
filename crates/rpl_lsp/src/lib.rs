@@ -133,6 +133,15 @@ pub fn get_hover_for_word(word: &str, source: &str) -> Option<String> {
         "end" => "**`end`** (Keyword)\n\nUniversal block terminator in RPL (replaces closing curly braces `}`).",
         "println" => "**`fn println(text: String)`**\n\nStandard runtime function to print text to stdout followed by a newline.",
         "print" => "**`fn print(text: String)`**\n\nStandard runtime function to print text to stdout.",
+        "File" => "**`type File`**\n\nOpaque systems file handle backed by a standard stream (`FILE*`).",
+        "input" => "**`fn input() -> String`**\n\nReads a line of text from standard input (stdin) with trailing newline stripped.",
+        "read_file" => "**`fn read_file(path: String) -> String`**\n\nConvenience helper that reads the entire file into memory and immediately closes it. Returns empty string on error.",
+        "write_file" => "**`fn write_file(path: String, content: String) -> Bool`**\n\nConvenience helper that overwrites file with given content and immediately closes it. Returns true on success.",
+        "append_file" => "**`fn append_file(path: String, content: String) -> Bool`**\n\nConvenience helper that appends content to file and immediately closes it. Returns true on success.",
+        "open_file" => "**`fn open_file(path: String, mode: String) -> File`**\n\nOpens a file stream in specified mode (\"r\", \"w\", \"a\"). Returns a persistent `File` handle.",
+        "read_line" => "**`fn read_line(file: File) -> String`**\n\nReads a single line from an open file stream without closing the handle.",
+        "write_line" => "**`fn write_line(file: File, line: String) -> Bool`**\n\nWrites a line of text followed by newline to an open file stream and flushes without closing the handle.",
+        "close_file" => "**`fn close_file(file: File)`**\n\nCloses the open file stream. Consumes ownership of the file handle.",
         _ => {
             // 2. Search declarations in parsed AST
             if let Ok(prog) = rpl_parser::parse_program(source) {
@@ -284,8 +293,9 @@ fn classify_token(
 
         // Identifiers
         rpl_lexer::Token::Ident(name) => match name.as_str() {
-            "Trit" | "Int" | "Int64" | "Float" | "String" | "Bool" | "Byte" => Some(1), // TYPE
-            "print" | "println" => Some(3),                                   // FUNCTION
+            "Trit" | "Int" | "Int64" | "Float" | "String" | "Bool" | "Byte" | "File" => Some(1), // TYPE
+            "print" | "println" | "input" | "read_file" | "write_file" | "append_file"
+            | "open_file" | "read_line" | "write_line" | "close_file" => Some(3), // FUNCTION
             _ if user_types.contains(name) => Some(1),                        // TYPE
             _ if user_fns.contains(name) => Some(3),                          // FUNCTION
             _ => Some(2),                                                     // VARIABLE

@@ -50,7 +50,7 @@ pub fn rpl_to_cl_type(ty: &Type, ptr_type: types::Type) -> types::Type {
         Type::Float32 => types::F32,
         Type::Bool => types::I8, // 0 = false, 1 = true
         Type::Trit => types::I8, // -1 = false, 0 = unknown, 1 = true
-        Type::String => ptr_type,
+        Type::String | Type::File => ptr_type,
         Type::Named(_) => ptr_type,
         Type::List(_) | Type::Map(_, _) | Type::Option(_) | Type::Result(_, _) | Type::Channel(_) => {
             ptr_type
@@ -69,7 +69,7 @@ pub fn type_size(
         Type::Int32 | Type::UInt32 | Type::Float32 => 4,
         Type::Int16 | Type::UInt16 => 2,
         Type::Int8 | Type::UInt8 | Type::Byte | Type::Bool | Type::Trit => 1,
-        Type::String => ptr_size,
+        Type::String | Type::File => ptr_size,
         Type::Named(name) => {
             if let Some(layout) = structs.get(name) {
                 layout.total_size
@@ -94,7 +94,7 @@ pub fn type_align(
         Type::Int32 | Type::UInt32 | Type::Float32 => 4,
         Type::Int16 | Type::UInt16 => 2,
         Type::Int8 | Type::UInt8 | Type::Byte | Type::Bool | Type::Trit => 1,
-        Type::String => ptr_size,
+        Type::String | Type::File => ptr_size,
         Type::Named(name) => {
             if let Some(layout) = structs.get(name) {
                 layout.alignment

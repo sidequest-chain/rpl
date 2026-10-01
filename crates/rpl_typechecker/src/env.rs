@@ -77,6 +77,84 @@ impl Environment {
             },
         );
 
+        // Convenience I/O primitives (Layer 1)
+        self.functions.insert(
+            "input".to_string(),
+            FnSignature {
+                params: vec![],
+                return_type: Some(Type::String),
+            },
+        );
+
+        self.functions.insert(
+            "read_file".to_string(),
+            FnSignature {
+                params: vec![Param::new("path".to_string(), Type::String, Span::dummy())],
+                return_type: Some(Type::String),
+            },
+        );
+
+        self.functions.insert(
+            "write_file".to_string(),
+            FnSignature {
+                params: vec![
+                    Param::new("path".to_string(), Type::String, Span::dummy()),
+                    Param::new("content".to_string(), Type::String, Span::dummy()),
+                ],
+                return_type: Some(Type::Bool),
+            },
+        );
+
+        self.functions.insert(
+            "append_file".to_string(),
+            FnSignature {
+                params: vec![
+                    Param::new("path".to_string(), Type::String, Span::dummy()),
+                    Param::new("content".to_string(), Type::String, Span::dummy()),
+                ],
+                return_type: Some(Type::Bool),
+            },
+        );
+
+        // Stream and file handle primitives (Layer 2)
+        self.functions.insert(
+            "open_file".to_string(),
+            FnSignature {
+                params: vec![
+                    Param::new("path".to_string(), Type::String, Span::dummy()),
+                    Param::new("mode".to_string(), Type::String, Span::dummy()),
+                ],
+                return_type: Some(Type::File),
+            },
+        );
+
+        self.functions.insert(
+            "read_line".to_string(),
+            FnSignature {
+                params: vec![Param::new("file".to_string(), Type::File, Span::dummy())],
+                return_type: Some(Type::String),
+            },
+        );
+
+        self.functions.insert(
+            "write_line".to_string(),
+            FnSignature {
+                params: vec![
+                    Param::new("file".to_string(), Type::File, Span::dummy()),
+                    Param::new("line".to_string(), Type::String, Span::dummy()),
+                ],
+                return_type: Some(Type::Bool),
+            },
+        );
+
+        self.functions.insert(
+            "close_file".to_string(),
+            FnSignature {
+                params: vec![Param::new("file".to_string(), Type::File, Span::dummy())],
+                return_type: None,
+            },
+        );
+
         self.functions.insert(
             "rpl_trit_to_str".to_string(),
             FnSignature {

@@ -151,7 +151,7 @@ fn test_cli_version() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains("rpl 0.2+3 \"Tohtlane\""),
+        stdout.contains("rpl 0.2+4 \"Tohtlane\""),
         "stdout was: {}",
         stdout
     );
@@ -232,5 +232,75 @@ fn test_version_consistency_across_workspace() {
         version_content
     );
 }
+
+#[test]
+fn test_all_valid_fixtures_check() {
+    let rpl_bin = get_rpl_bin();
+    let root_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let fixtures_dir = root_dir.join("tests").join("fixtures");
+
+    let valid_fixtures = [
+        "ternary.rpl",
+        "orders.rpl",
+        "words.rpl",
+        "binary.rpl",
+        "parallel.rpl",
+        "control_flow.rpl",
+        "functions_pipeline.rpl",
+        "io_complete.rpl",
+    ];
+
+    for fixture in valid_fixtures {
+        let fixture_path = fixtures_dir.join(fixture);
+        assert!(fixture_path.exists(), "Fixture does not exist: {fixture}");
+        let output = Command::new(&rpl_bin)
+            .args(["check", fixture_path.to_str().unwrap()])
+            .output()
+            .unwrap_or_else(|e| panic!("Failed to run rpl check on {fixture}: {e}"));
+
+        assert!(
+            output.status.success(),
+            "rpl check failed for {fixture}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains("Check passed"),
+            "Check passed expected for {fixture}, got: {stdout}"
+        );
+    }
+}
+
+#[test]
+fn test_negative_fixture_use_after_close() {
+    let rpl_bin = get_rpl_bin();
+    let root_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let fixture_path = root_dir.join("tests").join("fixtures").join("io_use_after_close.rpl");
+
+    assert!(fixture_path.exists(), "Negative fixture must exist");
+    let output = Command::new(&rpl_bin)
+        .args(["check", fixture_path.to_str().unwrap()])
+        .output()
+        .expect("Failed to run rpl check on negative fixture");
+
+    assert!(
+        !output.status.success(),
+        "Negative test must fail typechecking"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Use of moved value 'f'"),
+        "Expected 'Use of moved value' in stderr, got: {stderr}"
+    );
+}
+
 
 

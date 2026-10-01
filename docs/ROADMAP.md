@@ -3,7 +3,7 @@ Document ID: RPL-ROAD-2026-V2
 Classification: PUBLIC OPEN SOURCE / EUPL-1.2  
 Status: ACTIVE ROADMAP  
 Author: RPL Core Compiler Team  
-Active Release: 0.2+3 "Tohtlane"  
+Active Release: 0.2+4 "Tohtlane"  
 
 ---
 
@@ -49,7 +49,8 @@ To balance rapid cross-platform deployment (Windows & Linux) with instantaneous 
 | **In-Memory Cranelift JIT Engine** | **P0 (Base)** | `codegen_cranelift / cli` | **Completed** | Sub-ms native code execution for `rpl run`, WindowsFastcall/SystemV ABIs, zero-dependency CLI runtime (v0.2 "Tohtlane"). |
 | **Zero-Dependency Language Server Protocol (LSP)** | **P0 (Base)** | `rpl_lsp / cli` | **Completed** | Embedded `rpl lsp` engine with diagnostics, hover documentation, and LSP 3.17 semantic tokens. |
 | **Native Zed & VS Code Editor Integrations** | **P0 (Base)** | `editors / zed / code` | **Completed** | Native `wasm32-wasip2` Wasm component extension for Zed and zero-dependency client for VS Code. |
-| **Standard Library: Core IO, Math & String Collections** | **P1 (High)** | `stdlib / runtime` | **Next Up** | First-class string utilities, file system access (`fs`), console I/O, math primitives, and dynamic collections. |
+| **Two-Tier File & Console I/O Architecture** | **P1 (Core)** | `runtime / codegen / typechecker` | **Completed** | Full Two-Tier I/O: convenience atomic (`read_file`, `write_file`, `append_file`, `input`) and long-lived system streams (`File`, `open_file`, `read_line`, `write_line`, `close_file`) with affine move safety. |
+| **Standard Library: Collections & Math Primitives** | **P1 (High)** | `stdlib / runtime` | **Next Up** | First-class string utilities, math built-in intrinsics, and heap/stack dynamic collections (`List[T]`, `Map[K, V]`). |
 | **Structured Concurrency Runtime (`spawn:` & Channels)** | **P2 (High)** | `runtime / codegen` | **Medium-Term** | Lightweight M:N cooperative task scheduler, lock-free typed channels (`Channel[T]`), and channel select semantics. |
 | **Multi-Core Data Parallelism (`parallel for`)** | **P2 (High)** | `typechecker / codegen` | **Medium-Term** | Safe work-stealing thread pool distribution across CPU cores for loop ranges and batch data processing. |
 | **Official Standalone Extension Repositories & Publishing** | **P3 (Planned)** | `ecosystem / editors` | **Scheduled** | Extracting Zed and VS Code extensions into dedicated standalone repos under official organization for marketplace publishing. |
@@ -69,13 +70,15 @@ To balance rapid cross-platform deployment (Windows & Linux) with instantaneous 
 - **Phase 0: Compiler Frontend Verification (v0.1 Base):** AST models, Logos lexer with newline semantics, Pratt parser, and Kleene ternary type verification.
 - **Phase 1: Portable C99 Transpiler & Native CLI (v0.1 "Puulane"):** C99 code generation, host compiler detection (`clang`/`gcc`/`cl.exe`), and standalone binary building.
 - **Phase 2: In-Memory Cranelift JIT & LSP Engine (v0.2 "Tohtlane"):** Sub-millisecond machine code execution, embedded Language Server Protocol (`rpl lsp`), and native editor tooling.
+- **Two-Tier I/O Subsystem (Convenience + System Streams):** Completed zero-dependency I/O architecture across C99 transpiler and Cranelift JIT runtime bridges, with affine move-safety checking for stream handles.
 
 ---
 
 ### 3.2. P1: Immediate Focus (Active Next Steps)
 
-1. **Standard Library Core Primitives (`math`, `io`, `fs`, `strings`):**
-   - Native modules for filesystem reading/writing, terminal formatted I/O, string manipulation (split, join, replace, regex), and mathematical operations.
+1. **Standard Library Core Primitives (`math`, `collections`, `strings`):**
+   - Native modules for string manipulation (split, join, replace, regex) and mathematical operations.
+   - Dynamic collections (`List[T]`, `Map[K, V]`) with deterministic scope-based memory cleanup.
    - Runtime memory safety guarantees ensuring buffers are automatically released at scope exit (`end`).
 
 
