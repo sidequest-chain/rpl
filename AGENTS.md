@@ -21,8 +21,8 @@ This document establishes operational boundaries, engineering standards, and exe
    * All code comments, function documentation (docstrings), parser errors, and diagnostic output must be in **English**.
    * Conversational dialogue must match the user's language (mirror user prompt language: e.g., respond in Estonian when addressed in Estonian, English when addressed in English).
 
-4. **Public Documentation Scope:**
-   * Local workstation automation, personal scripts, or artifacts excluded via `.gitignore` (such as `tools/`, local aliases, or workstation configs) must **never** be documented in `CHANGELOG.md` or public release notes. Public documentation must solely record features, fixes, and tooling available to all repository consumers.
+4. **Public Documentation & Commit Scope:**
+   * Local workstation automation, personal scripts, or artifacts excluded via `.gitignore` (such as `tools/`, local aliases, or workstation configs) must **never** be mentioned in git commit messages, `CHANGELOG.md`, or public release notes. Commits and public documentation must solely record features, fixes, and tooling available to all repository consumers.
 
 ---
 
@@ -127,19 +127,18 @@ Context: <Detailed architectural background, non-obvious design choices, subsyst
 ```
 
 ### 5.3 Execution Standard (Writing the Commit)
-When instructed to commit, write the structured commit message to a temporary file: `commit_msg.txt`.
+When committing, execute `git commit` directly using multiple `-m` arguments to separate the title from the body (and context):
 
-Commit using the file reference:
 ```bash
-git commit -F commit_msg.txt
+git commit -m "<type>(<scope>): <short imperative title>" -m "<why body>"
 ```
 
-Clean up the temporary file immediately after committing:
+Or for context-enriched commits:
 ```bash
-rm commit_msg.txt
+git commit -m "<type>(<scope>): <short imperative title>" -m "<why body>" -m "Context: <architectural context>"
 ```
 
-**Rule:** Do NOT run interactive `git commit -m` with inline multi-line escaped text to prevent shell quote truncation and lost formatting.
+Do not create intermediary temporary files (such as `commit_msg.txt`) when staging or committing changes.
 
 ---
 
