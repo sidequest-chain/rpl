@@ -1,6 +1,6 @@
 # RPL (Running Pseudo Language)
 
-[![Milestone: 0.2 "Tohtlane"](https://img.shields.io/badge/milestone-0.2_%22Tohtlane%22-blue.svg)](docs/spec/ROADMAP.md)
+[![Milestone: 0.2 "Tohtlane"](https://img.shields.io/badge/milestone-0.2_%22Tohtlane%22-blue.svg)](docs/agent/ROADMAP.md)
 [![Active Release: see VERSION](https://img.shields.io/badge/release-see%20VERSION-informational.svg)](VERSION)
 [![License: EUPL 1.2](https://img.shields.io/badge/License-EUPL_1.2-blue.svg)](https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12)
 [![Build Status](https://img.shields.io/badge/tests-74%20passed-brightgreen.svg)]()
@@ -125,11 +125,12 @@ rpl/
 │   ├── README.md           # Documentation taxonomy and navigation index
 │   ├── agent/              # Tier 1: Ground Truth for autonomous LLM agents and compiler devs
 │   │   ├── CODE_MAP.md     # Architectural index and module navigation
-│   │   └── COMPILER_CAPABILITIES.md # Ground truth working feature matrix vs limitations
-│   ├── spec/               # Tier 2: Target formal specification, grammar, and roadmap (Vision / RFC)
+│   │   ├── COMPILER_CAPABILITIES.md # Ground truth working feature matrix vs limitations
+│   │   └── ROADMAP.md      # Prioritized development milestones (P0 to P4)
+│   ├── spec/               # Tier 2: Target formal specification, grammar, and RFCs (Vision / RFC)
 │   │   ├── PROJECT_SPEC.md # Formal language specification and syntax targets
-│   │   └── ROADMAP.md      # Strategic milestone evolution (0.1 Puulane → 1.0 Põhja Konn)
-│   └── user/               # Tier 3: Practical guides and developer handbook
+│   │   └── CONCURRENCY_SPEC.md # Structured concurrency, green threads, and channel design (v0.3 Kratt)
+│   └── guide/              # Tier 3: Practical guides and developer handbook
 │       ├── LANGUAGE_GUIDE.md # Practical language guide and tutorial for 0.2
 │       └── IDE_SETUP.md    # Editor setup guide (Zed, VS Code, AGY) for rpl lsp
 ├── crates/
@@ -241,14 +242,15 @@ RPL documentation is structured into three decoupled tiers based on target audie
 ### 1. Compiler Ground Truth & LLM Navigation (docs/agent/)
 * **[docs/agent/COMPILER_CAPABILITIES.md](docs/agent/COMPILER_CAPABILITIES.md):** Absolute Single Source of Truth for what 100% compiles, runs, and passes tests in the active compiler.
 * **[docs/agent/CODE_MAP.md](docs/agent/CODE_MAP.md):** Living architectural symbol map, module index, and fast-navigation matrix. Mandatory first read for LLM agents.
+* **[docs/agent/ROADMAP.md](docs/agent/ROADMAP.md):** Prioritized development milestones and agile evolution matrix (P0 Base through P4 Deferred).
 
 ### 2. Language Vision & Strategic Milestones (docs/spec/)
 * **[docs/spec/PROJECT_SPEC.md](docs/spec/PROJECT_SPEC.md):** Formal language specification, target grammar rules, and syntax vision (includes future roadmap constructs).
-* **[docs/spec/ROADMAP.md](docs/spec/ROADMAP.md):** Architectural evolution roadmap, hybrid execution model (C99 + Cranelift JIT), and self-hosting strategy.
+* **[docs/spec/CONCURRENCY_SPEC.md](docs/spec/CONCURRENCY_SPEC.md):** Formal specification for structured concurrency, green threads, and lock-free channels (Milestone 0.3 Kratt).
 
-### 3. End-User Guides & Tooling (docs/user/)
-* **[docs/user/LANGUAGE_GUIDE.md](docs/user/LANGUAGE_GUIDE.md):** Practical developer guide and tutorial for writing code on active milestone 0.2 "Tohtlane".
-* **[docs/user/IDE_SETUP.md](docs/user/IDE_SETUP.md):** Editor setup guide for Zed, Antigravity IDE, and VS Code using the built-in RPL Language Server (`rpl lsp`).
+### 3. End-User Guides & Tooling (docs/guide/)
+* **[docs/guide/LANGUAGE_GUIDE.md](docs/guide/LANGUAGE_GUIDE.md):** Practical developer guide and tutorial for writing code on active milestone 0.2 "Tohtlane".
+* **[docs/guide/IDE_SETUP.md](docs/guide/IDE_SETUP.md):** Editor setup guide for Zed, Antigravity IDE, and VS Code using the built-in RPL Language Server (`rpl lsp`).
 * **[AGENTS.md](AGENTS.md):** Operating rules, NWBW commit protocol, and strict verification invariants for autonomous agents.
 
 ---

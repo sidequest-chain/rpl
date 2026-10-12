@@ -1,7 +1,8 @@
-# IDE Setup & Integration Guide (docs/user/IDE_SETUP.md)
+# IDE Setup & Integration Guide (docs/guide/IDE_SETUP.md)
 
-> **Document Role:** Editor Tooling & LSP Configuration Guide  
-> **Target Audience:** RPL Developers & Contributors (**Tooling Setup**)  
+> **Document Role:** Practical Developer Manual & Tutorials  
+> **Target Audience:** End-User Programmers using active release milestone  
+> **Rule:** Code examples must compile and execute cleanly on the active compiler version.  
 > **Active Milestone:** 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
 
 This guide explains how to configure **Zed**, **Antigravity IDE**, and **Visual Studio Code** to use the official Running Pseudo Language (RPL) Language Server Protocol (`rpl lsp`) for real-time syntax checking, Kleene ternary type diagnostics, and hover documentation.

@@ -37,9 +37,9 @@ This document establishes operational boundaries, engineering standards, and exe
      - **Surgical Opening Only:** Files may ONLY be opened when they need immediate, surgical editing or when a specific, complex internal implementation detail must be verified.
      - **No Blind Browsing:** Blindly browsing, scanning, or looping through files in the codebase is strictly prohibited.
    * **Documentation Taxonomy Rule (Dokumentatsiooni taksonoomia reegel — Ground Truth vs. Vision):**
-     - **Tier 1 — Ground Truth (`docs/agent/`):** When an agent or developer needs to know what *actually* compiles, runs, and works today, they must consult **ONLY** `docs/agent/` (`docs/agent/COMPILER_CAPABILITIES.md` for active capability boundaries and `docs/agent/CODE_MAP.md` for living symbol topography). This is the absolute single source of truth for current compiler reality.
-     - **Tier 2 — Future Vision & RFCs (`docs/spec/`):** Material in `docs/spec/` (`PROJECT_SPEC.md`, `ROADMAP.md`) defines long-term language design targets, formal grammar, and roadmap milestones (e.g. channels, algebraic `Result`, full closures). Agents are strictly forbidden from assuming features described in `docs/spec/` exist in the active compiler unless explicitly confirmed in `docs/agent/COMPILER_CAPABILITIES.md`.
-     - **Tier 3 — User Guides (`docs/user/`):** Practical programming tutorials (`LANGUAGE_GUIDE.md`) and editor integration guides (`IDE_SETUP.md`) for human developers writing code against the active milestone.
+     - **Tier 1 — Ground Truth (`docs/agent/`):** When an agent or developer needs to know what *actually* compiles, runs, and works today, they must consult **ONLY** `docs/agent/` (`docs/agent/COMPILER_CAPABILITIES.md` for active capability boundaries, `docs/agent/CODE_MAP.md` for living symbol topography, and `docs/agent/ROADMAP.md` for prioritized milestone planning). This is the absolute single source of truth for current compiler reality.
+     - **Tier 2 — Future Vision & RFCs (`docs/spec/`):** Material in `docs/spec/` (`PROJECT_SPEC.md`, `CONCURRENCY_SPEC.md`) defines long-term language design targets, formal grammar, and RFC specifications (e.g. channels, algebraic `Result`, full closures). `docs/spec/` is strictly non-authoritative for current compiler implementation status. Agents are strictly forbidden from assuming features described in `docs/spec/` exist in the active compiler unless explicitly confirmed in `docs/agent/COMPILER_CAPABILITIES.md`.
+     - **Tier 3 — User Guides (`docs/guide/`):** Practical programming tutorials (`LANGUAGE_GUIDE.md`) and editor integration guides (`IDE_SETUP.md`) for human developers writing code against the active milestone.
    * **Clear Documentation Roles:**
      - **`CHANGELOG.md`:** Historical ledger of past releases (what was completed previously).
      - **`docs/agent/CODE_MAP.md`:** Active index and topography of the current codebase (what exists right now and where).
@@ -72,11 +72,12 @@ The repository is structured as a modular Rust workspace:
 │   ├── README.md               # Documentation taxonomy and navigation index
 │   ├── agent/                  # Tier 1: Ground Truth for autonomous LLM agents and compiler devs
 │   │   ├── CODE_MAP.md         # Architectural index and module navigation for agents
-│   │   └── COMPILER_CAPABILITIES.md # Working capability matrix vs roadmap boundaries
-│   ├── spec/                   # Tier 2: Formal language specification & roadmap (Vision / RFC)
-│   │   ├── PROJECT_SPEC.md     # RPL language specification and grammar targets
-│   │   └── ROADMAP.md          # Architectural evolution roadmap and hybrid execution model
-│   └── user/                   # Tier 3: Practical guides and developer handbook
+│   │   ├── COMPILER_CAPABILITIES.md # Working capability matrix vs roadmap boundaries
+│   │   └── ROADMAP.md          # Prioritized development milestones (P0 to P4)
+│   ├── spec/                   # Tier 2: Formal language specification & RFCs (Vision / RFC)
+│   │   ├── PROJECT_SPEC.md     # RPL language specification and grammar targets (v1.0 vision)
+│   │   └── CONCURRENCY_SPEC.md # Structured concurrency, green threads, and channel design (v0.3 Kratt)
+│   └── guide/                  # Tier 3: Practical guides and developer handbook
 │       ├── LANGUAGE_GUIDE.md   # Practical language guide and tutorial for developers
 │       └── IDE_SETUP.md        # Editor setup guide (Zed, VS Code, AGY) for rpl lsp
 ├── Cargo.toml              # Root workspace manifest
@@ -293,7 +294,7 @@ All agents and contributors must strictly enforce the following versioning disci
    - **`VERSION` File is the Sole Source of Truth:** The file `VERSION` at the workspace root is the ONLY authoritative location for the active full version string (e.g., `0.2+4 "Tohtlane"`).
    - **Zero Churn on Patch Bumps:** When bumping `+PATCH` (for bug fixes, refinements, or maintenance):
      1. Update **ONLY** `VERSION` and record the release entry in `CHANGELOG.md`.
-     2. **Never search-and-replace patch numbers across documentation or tests.** Documentation files (`README.md`, `docs/spec/PROJECT_SPEC.md`, `docs/spec/ROADMAP.md`, `docs/agent/COMPILER_CAPABILITIES.md`, `docs/user/IDE_SETUP.md`) refer strictly to the minor milestone generation (e.g. `0.2 "Tohtlane"`) and reference `VERSION` for the active patch iteration.
+     2. **Never search-and-replace patch numbers across documentation or tests.** Documentation files (`README.md`, `docs/spec/PROJECT_SPEC.md`, `docs/agent/ROADMAP.md`, `docs/agent/COMPILER_CAPABILITIES.md`, `docs/guide/IDE_SETUP.md`) refer strictly to the minor milestone generation (e.g. `0.2 "Tohtlane"`) and reference `VERSION` for the active patch iteration.
      3. Tests (`cli_tests.rs`) dynamically assert against `VERSION` via `include_str!("../../../VERSION")` and must never hardcode monotonic patch counters.
      4. Compiler CLI and LSP binaries embed `VERSION` directly at compile time via `include_str!`.
    - **Milestone Bumps Only on Phase Completion:** Only when a full major roadmap phase is completed (e.g., transitioning from `0.2 "Tohtlane"` to `0.3 "Kratt"`) are milestone references across architectural documentation updated.

@@ -1,10 +1,11 @@
 # RPL Compiler Capabilities & Implementation Status (docs/agent/COMPILER_CAPABILITIES.md)
 
-> **Document Role:** Compiler Ground Truth & Active Capability Matrix  
-> **Target Audience:** Autonomous AI Agents & Compiler Developers (**Ground Truth Authority**)  
+> **Document Role:** Authoritative Ground Truth (Compiler Core & Autonomous Agents)  
+> **Target Audience:** LLM Coding Agents, Compiler Engineers  
+> **Rule:** Represents ONLY what is 100% verified, implemented, and operational in the current build.  
 > **Active Milestone:** 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
 > **Authority Level:** **Absolute SSoT** for what language constructs 100% compile, run, and pass test suites today.  
-> **Boundary Notice:** For long-term syntax vision and planned features (e.g. channels, `Result`, arrays), consult [docs/spec/PROJECT_SPEC.md](../spec/PROJECT_SPEC.md). For end-user tutorials, consult [docs/user/LANGUAGE_GUIDE.md](../user/LANGUAGE_GUIDE.md).
+> **Boundary Notice:** For long-term syntax vision and planned features (e.g. channels, `Result`, arrays), consult [docs/spec/PROJECT_SPEC.md](../spec/PROJECT_SPEC.md) and [docs/spec/CONCURRENCY_SPEC.md](../spec/CONCURRENCY_SPEC.md). For strategic roadmap priorities, consult [docs/agent/ROADMAP.md](ROADMAP.md). For end-user tutorials, consult [docs/guide/LANGUAGE_GUIDE.md](../guide/LANGUAGE_GUIDE.md).
 
 ---
 

@@ -1,14 +1,16 @@
-# RPL — STRATEGIC ARCHITECTURE ROADMAP & EVOLUTION MATRIX (docs/spec/ROADMAP.md)
-Document ID: RPL-ROAD-2026-V2  
-Role: Strategic Milestone Evolution & Phased Architecture Plan (Vision / Roadmap)  
-Target Audience: Maintainers, Architects & Strategic Contributors  
-Active Milestone: 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
-Classification: PUBLIC OPEN SOURCE / EUPL-1.2  
-Status: ACTIVE ROADMAP  
+# RPL — STRATEGIC ARCHITECTURE ROADMAP & EVOLUTION MATRIX (docs/agent/ROADMAP.md)
+
+> **Document Role:** Authoritative Ground Truth (Compiler Core & Autonomous Agents)  
+> **Target Audience:** LLM Coding Agents, Compiler Engineers  
+> **Rule:** Represents ONLY what is 100% verified, implemented, and operational in the current build.  
+> Document ID: RPL-ROAD-2026-V2  
+> Active Milestone: 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
+> Classification: PUBLIC OPEN SOURCE / EUPL-1.2  
+> Status: ACTIVE ROADMAP  
 
 > [!IMPORTANT]
 > **ROADMAP VS. ACTIVE GROUND TRUTH:**  
-> This roadmap outlines the strategic phases from milestone 0.1 through 1.0 self-hosting. Features listed under future milestones (e.g. 0.3 "Kratt" concurrency, 0.4 "Tulihänd" collections, 0.5 "Siil" borrow checker) are strictly planned future work. For the active capability matrix of what works today, consult [docs/agent/COMPILER_CAPABILITIES.md](../agent/COMPILER_CAPABILITIES.md).
+> This roadmap outlines the strategic phases from milestone 0.1 through 1.0 self-hosting. Features listed under future milestones (e.g. 0.3 "Kratt" concurrency, 0.4 "Tulihänd" collections, 0.5 "Siil" borrow checker) are strictly planned future work. For the active capability matrix of what works today, consult [docs/agent/COMPILER_CAPABILITIES.md](COMPILER_CAPABILITIES.md).
 
 ---
 
@@ -69,7 +71,7 @@ To balance rapid cross-platform deployment (Windows & Linux) with instantaneous 
 ## 3. DETAILED HORIZON SPECIFICATIONS
 
 > [!NOTE]
-> For release-by-release history, patch notes, and historical additions, refer to [`CHANGELOG.md`](../CHANGELOG.md). This roadmap strictly details architectural horizons, current focus, and technical constraints.
+> For release-by-release history, patch notes, and historical additions, refer to [`CHANGELOG.md`](../../CHANGELOG.md). This roadmap strictly details architectural horizons, current focus, and technical constraints.
 
 ### 3.1. Foundational Architecture (Completed Milestones)
 - **Phase 0: Compiler Frontend Verification (v0.1 Base):** AST models, Logos lexer with newline semantics, Pratt parser, and Kleene ternary type verification.

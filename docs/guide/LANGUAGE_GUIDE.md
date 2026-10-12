@@ -1,7 +1,8 @@
-# The RPL Language Guide (docs/user/LANGUAGE_GUIDE.md)
+# The RPL Language Guide (docs/guide/LANGUAGE_GUIDE.md)
 
-> **Document Role:** Practical Developer Tutorial & Hands-on User Manual  
-> **Target Audience:** Human Programmers & End-User Developers (**Writing Working `.rpl` Code**)  
+> **Document Role:** Practical Developer Manual & Tutorials  
+> **Target Audience:** End-User Programmers using active release milestone  
+> **Rule:** Code examples must compile and execute cleanly on the active compiler version.  
 > **Active Milestone Authority:** 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
 > **Compiler Ground Truth:** Every code sample in Chapters 1–12 of this guide is **100% verified** to compile and run in the active `0.2` compiler binary (`rpl run` / `rpl build`). Future language specifications and upcoming designs are consolidated in [Chapter 13 (Roadmap Preview)](#13-language-evolution--roadmap-preview-phase-3--4).  
 > **Internal Mechanics Reference:** For compiler module architecture, consult [docs/agent/CODE_MAP.md](../agent/CODE_MAP.md) and [docs/agent/COMPILER_CAPABILITIES.md](../agent/COMPILER_CAPABILITIES.md).
@@ -591,7 +592,7 @@ rpl build --emit-c examples/reaktor.rpl
 ```
 
 ### 12.4 Language Server Protocol (`rpl lsp`)
-RPL includes a zero-dependency Language Server implementing the LSP standard. To configure Zed, VS Code, or Antigravity IDE, see [docs/user/IDE_SETUP.md](IDE_SETUP.md).
+RPL includes a zero-dependency Language Server implementing the LSP standard. To configure Zed, VS Code, or Antigravity IDE, see [docs/guide/IDE_SETUP.md](IDE_SETUP.md).
 
 ---
 
@@ -599,9 +600,13 @@ RPL includes a zero-dependency Language Server implementing the LSP standard. To
 
 > [!IMPORTANT]
 > **ROADMAP PREVIEW NOTICE:**  
-> The constructs in this section represent RPL's planned architectural evolution described in [docs/spec/PROJECT_SPEC.md](../spec/PROJECT_SPEC.md) and [docs/spec/ROADMAP.md](../spec/ROADMAP.md). They are **not yet executable** in milestone 0.2 and will be unlocked in upcoming milestone releases.
+> The constructs in this section represent RPL's planned architectural evolution described in [docs/spec/PROJECT_SPEC.md](../spec/PROJECT_SPEC.md) and [docs/agent/ROADMAP.md](../agent/ROADMAP.md). They are **not yet executable** in milestone 0.2 and will be unlocked in upcoming milestone releases.
 
 ### 13.1 `while` Loop Construct (Phase 2 Extension / Phase 3)
+
+> [!NOTE]
+> This feature is scheduled for Milestone 0.3 "Kratt" / Phase 2 Extension and is not yet available in the active release.
+
 Planned syntax for indefinite conditional iteration:
 
 ```rpl
@@ -615,6 +620,10 @@ end while
 *Current 0.2 Workaround:* Use bounded `for i in 1..limit:` loops with `if` conditionals.
 
 ### 13.2 Dynamic Collections & Functional Methods (Milestone 0.4 "Tulihänd")
+
+> [!NOTE]
+> This feature is scheduled for Milestone 0.4 "Tulihänd" and is not yet available in the active release.
+
 Planned standard library collection types and functional methods:
 
 ```rpl
@@ -630,6 +639,10 @@ let city = capitals.get("Estonia", "Unknown")
 *Current 0.2 Workaround:* Use fixed record structures (`type`) and top-level pipeline functions (`|>`).
 
 ### 13.3 Structured Concurrency & Channels (Milestone 0.3 "Kratt")
+
+> [!NOTE]
+> This feature is scheduled for Milestone 0.3 "Kratt" and is not yet available in the active release. See [docs/spec/CONCURRENCY_SPEC.md](../spec/CONCURRENCY_SPEC.md) for the complete RFC.
+
 Planned green-thread task spawning and lock-free typed channels:
 
 ```rpl
@@ -650,6 +663,10 @@ end for
 *Current 0.2 Workaround:* Milestone 0.2 executes structured blocks sequentially. True OS-level thread dispatch is slated for milestone 0.3.
 
 ### 13.4 Algebraic `Result[T, E]` and Error Constructors
+
+> [!NOTE]
+> This feature is scheduled for Milestone 0.4 "Tulihänd" / Milestone 0.5 "Siil" and is not yet available in the active release.
+
 Planned algebraic error handling to complement Trit logic:
 
 ```rpl
@@ -666,4 +683,6 @@ end fn
 ---
 
 *For formal grammar specifications, refer to [docs/spec/PROJECT_SPEC.md](../spec/PROJECT_SPEC.md).*  
+*For structured concurrency specifications, refer to [docs/spec/CONCURRENCY_SPEC.md](../spec/CONCURRENCY_SPEC.md).*  
+*For strategic roadmap milestones, refer to [docs/agent/ROADMAP.md](../agent/ROADMAP.md).*  
 *For compiler codebase architecture, refer to [docs/agent/CODE_MAP.md](../agent/CODE_MAP.md).*

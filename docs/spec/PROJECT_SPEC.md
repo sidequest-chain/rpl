@@ -1,7 +1,8 @@
 # RPL (Running Pseudo Language) — Technical Specification & Formal Grammar (docs/spec/PROJECT_SPEC.md)
 
-> **Document Role:** Formal Language Specification & Long-Term Grammar Vision (Spec / RFC)  
-> **Target Audience:** Language Designers, Compiler Architects, Spec Implementors  
+> **Document Role:** Formal Specification & Long-Term Language Architecture (Vision / RFC)  
+> **Target Audience:** Language Designers, Compiler Architects  
+> **Warning for LLM Agents:** Contains language features planned for future milestones. Do NOT assume constructs documented here are currently implemented in the compiler backend unless verified in `docs/agent/COMPILER_CAPABILITIES.md`.  
 > **Current Milestone Generation:** 0.2 "Tohtlane" (Active patch: see [VERSION](../../VERSION))  
 > **File Extension:** `.rpl`  
 > **CLI Tooling:** `rpl` (`rpl run`, `rpl build`, `rpl check`)  
@@ -9,7 +10,7 @@
 > [!IMPORTANT]
 > **SPECIFICATION VS. CURRENT COMPILER IMPLEMENTATION (GROUND TRUTH NOTICE):**  
 > This document defines the complete syntactic target, formal grammar, and long-term design of RPL (including future roadmap constructs like channels, algebraic `Result[T, E]`, full lambda closures, and standard collections).  
-> **For autonomous LLM agents and developers generating code for the current compiler:** Do **NOT** assume every construct in this specification is already implemented in the active compiler. The sole authoritative single source of truth for what currently compiles, runs, and passes test suites is **[docs/agent/COMPILER_CAPABILITIES.md](../agent/COMPILER_CAPABILITIES.md)** and the module index is **[docs/agent/CODE_MAP.md](../agent/CODE_MAP.md)**.
+> **For autonomous LLM agents and developers generating code for the current compiler:** Do **NOT** assume every construct in this specification is already implemented in the active compiler. The sole authoritative single source of truth for what currently compiles, runs, and passes test suites is **[docs/agent/COMPILER_CAPABILITIES.md](../agent/COMPILER_CAPABILITIES.md)**, prioritized roadmap milestones are in **[docs/agent/ROADMAP.md](../agent/ROADMAP.md)**, and the module index is in **[docs/agent/CODE_MAP.md](../agent/CODE_MAP.md)**. For structured concurrency and channel design, consult **[docs/spec/CONCURRENCY_SPEC.md](CONCURRENCY_SPEC.md)**.
 
 ---
 
