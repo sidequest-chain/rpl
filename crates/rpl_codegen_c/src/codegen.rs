@@ -705,6 +705,17 @@ impl CGenerator {
                 match right.as_ref() {
                     Expr::Call { callee, args, .. } => {
                         let c_callee = self.generate_expr(callee)?;
+                        if let Expr::Identifier(fn_name, _) = callee.as_ref() {
+                            if fn_name == "sleep" {
+                                return Ok(format!("rpl_sleep({c_left})"));
+                            }
+                            if fn_name == "seconds" {
+                                return Ok(format!("rpl_seconds({c_left})"));
+                            }
+                            if fn_name == "millis" {
+                                return Ok(format!("rpl_millis({c_left})"));
+                            }
+                        }
                         let mut all_args = vec![c_left];
                         for a in args {
                             all_args.push(self.generate_expr(a)?);
@@ -716,6 +727,15 @@ impl CGenerator {
                     }
                     Expr::Identifier(name, _) if name == "len" => {
                         Ok(format!("rpl_str_len({c_left})"))
+                    }
+                    Expr::Identifier(name, _) if name == "sleep" => {
+                        Ok(format!("rpl_sleep({c_left})"))
+                    }
+                    Expr::Identifier(name, _) if name == "seconds" => {
+                        Ok(format!("rpl_seconds({c_left})"))
+                    }
+                    Expr::Identifier(name, _) if name == "millis" => {
+                        Ok(format!("rpl_millis({c_left})"))
                     }
                     _ => {
                         let c_right = self.generate_expr(right)?;
@@ -746,6 +766,37 @@ impl CGenerator {
                             "\"\"".to_string()
                         };
                         return Ok(format!("rpl_str_len({c_arg})"));
+                    }
+
+                    if fn_name == "sleep" {
+                        let c_arg = if let Some(first) = args.first() {
+                            self.generate_expr(first)?
+                        } else {
+                            "0".to_string()
+                        };
+                        return Ok(format!("rpl_sleep({c_arg})"));
+                    }
+
+                    if fn_name == "time_now" {
+                        return Ok("rpl_time_now()".to_string());
+                    }
+
+                    if fn_name == "seconds" {
+                        let c_arg = if let Some(first) = args.first() {
+                            self.generate_expr(first)?
+                        } else {
+                            "0".to_string()
+                        };
+                        return Ok(format!("rpl_seconds({c_arg})"));
+                    }
+
+                    if fn_name == "millis" {
+                        let c_arg = if let Some(first) = args.first() {
+                            self.generate_expr(first)?
+                        } else {
+                            "0".to_string()
+                        };
+                        return Ok(format!("rpl_millis({c_arg})"));
                     }
 
                     // Check if it's a struct constructor: TypeName(...)

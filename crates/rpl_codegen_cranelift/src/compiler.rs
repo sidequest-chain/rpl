@@ -225,6 +225,28 @@ impl Compiler {
         sig_assert.params.push(AbiParam::new(types::I8));
         module.declare_function("rpl_jit_assert", Linkage::Import, &sig_assert)?;
 
+        // sleep: (i64) -> ()
+        let mut sig_sleep = module.make_signature();
+        sig_sleep.params.push(AbiParam::new(types::I64));
+        module.declare_function("rpl_jit_sleep", Linkage::Import, &sig_sleep)?;
+
+        // time_now: () -> i64
+        let mut sig_time_now = module.make_signature();
+        sig_time_now.returns.push(AbiParam::new(types::I64));
+        module.declare_function("rpl_jit_time_now", Linkage::Import, &sig_time_now)?;
+
+        // seconds: (i64) -> i64
+        let mut sig_seconds = module.make_signature();
+        sig_seconds.params.push(AbiParam::new(types::I64));
+        sig_seconds.returns.push(AbiParam::new(types::I64));
+        module.declare_function("rpl_jit_seconds", Linkage::Import, &sig_seconds)?;
+
+        // millis: (i64) -> i64
+        let mut sig_millis = module.make_signature();
+        sig_millis.params.push(AbiParam::new(types::I64));
+        sig_millis.returns.push(AbiParam::new(types::I64));
+        module.declare_function("rpl_jit_millis", Linkage::Import, &sig_millis)?;
+
         // input: () -> ptr
         let mut sig_input = module.make_signature();
         sig_input.returns.push(AbiParam::new(ptr_ty));
@@ -1128,6 +1150,10 @@ impl Compiler {
                 "close_file" => Some("rpl_jit_close_file"),
                 "assert" => Some("rpl_jit_assert"),
                 "len" => Some("rpl_jit_str_len"),
+                "sleep" => Some("rpl_jit_sleep"),
+                "time_now" => Some("rpl_jit_time_now"),
+                "seconds" => Some("rpl_jit_seconds"),
+                "millis" => Some("rpl_jit_millis"),
                 _ => None,
             };
 
@@ -1528,8 +1554,8 @@ impl Compiler {
             Expr::Pipe { right, .. } => match right.as_ref() {
                 Expr::Call { .. } => self.infer_expr_type(right),
                 Expr::Identifier(name, _) => match name.as_str() {
-                    "print" | "println" | "close_file" | "assert" => Type::Int,
-                    "len" => Type::Int,
+                    "print" | "println" | "close_file" | "assert" | "sleep" => Type::Int,
+                    "len" | "time_now" | "seconds" | "millis" => Type::Int,
                     "read_file" | "read_line" => Type::String,
                     "write_file" | "append_file" | "write_line" => Type::Bool,
                     "open_file" => Type::File,
@@ -1549,8 +1575,8 @@ impl Compiler {
                         "input" | "read_file" | "read_line" => return Type::String,
                         "write_file" | "append_file" | "write_line" => return Type::Bool,
                         "open_file" => return Type::File,
-                        "close_file" | "assert" => return Type::Int,
-                        "len" => return Type::Int,
+                        "close_file" | "assert" | "sleep" => return Type::Int,
+                        "len" | "time_now" | "seconds" | "millis" => return Type::Int,
                         _ => {}
                     }
                     if let Some(meta) = self.functions.get(fn_name) {

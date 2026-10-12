@@ -155,6 +155,35 @@ pub extern "C" fn rpl_jit_str_len(s: *const u8) -> i64 {
     unsafe { CStr::from_ptr(s as *const _).to_bytes().len() as i64 }
 }
 
+/// Suspends thread execution for the specified milliseconds.
+#[no_mangle]
+pub extern "C" fn rpl_jit_sleep(ms: i64) {
+    if ms > 0 {
+        std::thread::sleep(std::time::Duration::from_millis(ms as u64));
+    }
+}
+
+/// Returns the current timestamp in milliseconds (epoch timestamp).
+#[no_mangle]
+pub extern "C" fn rpl_jit_time_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0)
+}
+
+/// Helper converting seconds to milliseconds.
+#[no_mangle]
+pub extern "C" fn rpl_jit_seconds(s: i64) -> i64 {
+    s * 1000
+}
+
+/// Helper returning milliseconds.
+#[no_mangle]
+pub extern "C" fn rpl_jit_millis(ms: i64) -> i64 {
+    ms
+}
+
 /// Managed file stream handle in JIT memory.
 pub struct JitFile {
     pub file: File,
@@ -326,6 +355,10 @@ pub fn register_runtime_symbols(builder: &mut JITBuilder) {
     builder.symbol("rpl_jit_trit_to_str", rpl_jit_trit_to_str as *const u8);
     builder.symbol("rpl_jit_assert", rpl_jit_assert as *const u8);
     builder.symbol("rpl_jit_str_len", rpl_jit_str_len as *const u8);
+    builder.symbol("rpl_jit_sleep", rpl_jit_sleep as *const u8);
+    builder.symbol("rpl_jit_time_now", rpl_jit_time_now as *const u8);
+    builder.symbol("rpl_jit_seconds", rpl_jit_seconds as *const u8);
+    builder.symbol("rpl_jit_millis", rpl_jit_millis as *const u8);
     builder.symbol("rpl_jit_input", rpl_jit_input as *const u8);
     builder.symbol("rpl_jit_read_file", rpl_jit_read_file as *const u8);
     builder.symbol("rpl_jit_write_file", rpl_jit_write_file as *const u8);

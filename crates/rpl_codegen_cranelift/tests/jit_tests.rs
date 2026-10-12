@@ -157,4 +157,12 @@ assert(total == 15)
     assert_eq!(exit_code, 0);
 }
 
+#[test]
+fn test_jit_time_and_sleep() {
+    let source = include_str!("../../../tests/fixtures/time_and_sleep.rpl");
+    let program = parse_program(source).expect("Failed to parse time_and_sleep fixture");
+    let exit_code = run_program(&program).expect("Failed to execute time_and_sleep in JIT");
+    assert_eq!(exit_code, 0);
+}
+
 

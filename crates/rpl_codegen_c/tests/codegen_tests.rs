@@ -281,4 +281,16 @@ assert(count == 0)
     assert!(c_code.contains("rpl_str_len"));
 }
 
+#[test]
+fn test_time_and_sleep_codegen() {
+    let source = include_str!("../../../tests/fixtures/time_and_sleep.rpl");
+    let program = parse_program(source).expect("Failed to parse source");
+    let c_code = generate_c(&program).expect("Failed to generate C code");
+
+    assert!(c_code.contains("rpl_sleep"));
+    assert!(c_code.contains("rpl_time_now"));
+    assert!(c_code.contains("rpl_seconds"));
+    assert!(c_code.contains("rpl_millis"));
+}
+
 

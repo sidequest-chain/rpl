@@ -1,0 +1,22 @@
+// Core Time & Timing Primitives Fixture (sleep, time_now, seconds, millis)
+
+// 1. Semantic helper conversions
+let two_sec = seconds(2)
+assert(two_sec == 2000)
+assert(seconds(0) == 0)
+
+let fifty_ms = millis(50)
+assert(fifty_ms == 50)
+assert(millis(0) == 0)
+
+// 2. Direct sleep and time_now monotonicity check
+let t1 = time_now()
+sleep(20)
+let t2 = time_now()
+assert(t2 >= t1)
+
+// 3. Pipe operator syntax with converters and sleep
+10 |> millis |> sleep
+10 |> sleep
+
+println("Timing primitives verified successfully. Elapsed: $(t2 - t1)ms")

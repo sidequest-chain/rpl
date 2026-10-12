@@ -315,6 +315,8 @@ rpl_lexer
 | `tests/fixtures/functions_pipeline.rpl`| Positive test for top-level functions, pipe operator (`|>`), and lambdas. | `rpl run tests/fixtures/functions_pipeline.rpl` | `[+ + +]` Success |
 | `examples/daemon_logger.rpl` | Production-grade system daemon demonstrating stream logging & telemetry. | `rpl run examples/daemon_logger.rpl` | `[+ + +]` Success |
 | `examples/reaktor.rpl` | Nuclear reactor safety telemetry using Kleene 3-state logic (`Trit`). | `rpl run examples/reaktor.rpl` | `[+ + +]` Success |
+| `tests/fixtures/while_assert_len.rpl` | Core while loops, `assert` invariants, and `len` string introspection. | `rpl run tests/fixtures/while_assert_len.rpl` | `[+ + +]` Success |
+| `tests/fixtures/time_and_sleep.rpl` | Timing primitives (`sleep`, `time_now`, `seconds`, `millis`) and pipeline execution. | `rpl run tests/fixtures/time_and_sleep.rpl` | `[+ + +]` Success |
 
 ---
 
@@ -393,6 +395,10 @@ When locating, debugging, or adding built-in functions, refer to this exact cros
 | `trit_to_str(t: Trit) -> String` | `src/env.rs` | `src/runtime.rs:rpl_trit_to_str` | `src/runtime.rs:rpl_jit_trit_to_str` | `src/lib.rs` |
 | `assert(cond: Bool)` | `src/env.rs` | `src/runtime.rs:rpl_assert` | `src/runtime.rs:rpl_jit_assert` | `src/lib.rs` |
 | `len(val: String) -> Int` | `src/env.rs` | `src/runtime.rs:rpl_str_len` | `src/runtime.rs:rpl_jit_str_len` | `src/lib.rs` |
+| `sleep(ms: Int)` | `src/env.rs` | `src/runtime.rs:rpl_sleep` | `src/runtime.rs:rpl_jit_sleep` | `src/lib.rs` |
+| `time_now() -> Int` | `src/env.rs` | `src/runtime.rs:rpl_time_now` | `src/runtime.rs:rpl_jit_time_now` | `src/lib.rs` |
+| `seconds(s: Int) -> Int` | `src/env.rs` | `src/runtime.rs:rpl_seconds` | `src/runtime.rs:rpl_jit_seconds` | `src/lib.rs` |
+| `millis(ms: Int) -> Int` | `src/env.rs` | `src/runtime.rs:rpl_millis` | `src/runtime.rs:rpl_jit_millis` | `src/lib.rs` |
 
 ---
 

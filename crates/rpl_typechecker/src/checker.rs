@@ -887,6 +887,16 @@ impl TypeChecker {
                             });
                         }
                     }
+                } else if name == "sleep" || name == "seconds" || name == "millis" {
+                    if let Some(arg_ty) = arg_types.first() {
+                        if !self.types_compatible(&Type::Int, arg_ty) {
+                            self.errors.push(TypeError::TypeMismatch {
+                                expected: Type::Int,
+                                found: arg_ty.clone(),
+                                span,
+                            });
+                        }
+                    }
                 }
                 return sig.return_type.unwrap_or(Type::Named("Unit".into()));
             }

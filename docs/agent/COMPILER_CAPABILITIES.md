@@ -110,9 +110,13 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
   - `close_file(f)` and `f |> close_file` take ownership of `f` (move semantics).
   - Any subsequent attempt to read, write, or re-close `f` is rejected at compile time by the typechecker with `Use of moved value 'f'`, preventing dangling handle vulnerabilities.
 
-### 2.7. Core Built-in Intrinsics (`assert`, `len`)
+### 2.7. Core Built-in Intrinsics & Timing Primitives
 - **`assert(cond: Bool)`**: Validates invariant condition at runtime. If `false`, prints an assertion error message to stderr and terminates process execution with exit code 1.
 - **`len(val: String) -> Int`**: Evaluates the byte length of a string as a 64-bit signed integer (`Int`). Supports both direct call `len(s)` and pipeline composition `s |> len`.
+- **`sleep(ms: Int)`**: Suspends thread execution for the specified milliseconds. Supports direct call `sleep(ms)` and pipeline composition `50 |> sleep` or `2 |> seconds |> sleep`.
+- **`time_now() -> Int`**: Evaluates current timestamp in milliseconds (monotonic/epoch).
+- **`seconds(s: Int) -> Int`**: Semantic helper converting seconds to milliseconds (`s * 1000`).
+- **`millis(ms: Int) -> Int`**: Semantic helper identity returning milliseconds (`ms`).
 
 > [!IMPORTANT]
 > **Strict Code Generation Directives for AI Agents & Developers:**
@@ -150,6 +154,10 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
 | **Affine Stream Closing (`close_file`)** | ✅ Full | ✅ Enforced Move | ✅ Full (`fclose`) | ✅ Full (`rpl_jit_close_file`) | ✅ Hover & Move Err |
 | **`assert(cond: Bool)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_assert`) | ✅ Full (`rpl_jit_assert`) | ✅ Hover |
 | **`len(val: String)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_str_len`) | ✅ Full (`rpl_jit_str_len`) | ✅ Hover |
+| **`sleep(ms: Int)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_sleep`) | ✅ Full (`rpl_jit_sleep`) | ✅ Hover |
+| **`time_now() -> Int`** | ✅ Full | ✅ Full | ✅ Full (`rpl_time_now`) | ✅ Full (`rpl_jit_time_now`) | ✅ Hover |
+| **`seconds(s: Int)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_seconds`) | ✅ Full (`rpl_jit_seconds`) | ✅ Hover |
+| **`millis(ms: Int)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_millis`) | ✅ Full (`rpl_jit_millis`) | ✅ Hover |
 | **Lambdas / Closures (`=>`)** | ✅ Parsed | ⚠️ Untyped expr only | ⚠️ Prototype | ⚠️ Prototype | ✅ Tokens |
 | **Callable Variables (`let f = ...; f()`)** | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ TypeError |
 | **List Literals (`[1, 2, 3]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |

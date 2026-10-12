@@ -13,8 +13,11 @@ pub const RPL_RUNTIME_H: &str = r#"/* === Running Pseudo Language (RPL) C99 Runt
 #include <inttypes.h>
 
 #ifdef _WIN32
+  #include <windows.h>
   #define RPL_INLINE static __inline
 #else
+  #include <time.h>
+  #include <unistd.h>
   #define RPL_INLINE static inline
 #endif
 
@@ -255,6 +258,43 @@ RPL_INLINE int64_t rpl_str_len(const char* s) {
 
 #define assert(cond) rpl_assert(cond)
 #define len(s) rpl_str_len(s)
+
+RPL_INLINE void rpl_sleep(int64_t ms) {
+    if (ms <= 0) return;
+#ifdef _WIN32
+    Sleep((DWORD)ms);
+#else
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#endif
+}
+
+RPL_INLINE int64_t rpl_time_now(void) {
+#ifdef _WIN32
+    return (int64_t)GetTickCount64();
+#else
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+        return (int64_t)ts.tv_sec * 1000 + (int64_t)(ts.tv_nsec / 1000000);
+    }
+    return 0;
+#endif
+}
+
+RPL_INLINE int64_t rpl_seconds(int64_t s) {
+    return s * 1000;
+}
+
+RPL_INLINE int64_t rpl_millis(int64_t ms) {
+    return ms;
+}
+
+#define sleep(ms) rpl_sleep(ms)
+#define time_now() rpl_time_now()
+#define seconds(s) rpl_seconds(s)
+#define millis(ms) rpl_millis(ms)
 
 #endif /* RPL_RUNTIME_H */
 "#;

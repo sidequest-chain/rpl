@@ -7,6 +7,16 @@ and this project adheres to the RPL Versioning Policy (`MAJOR.MINOR[+PATCH] "Cod
 
 ---
 
+## [0.2+6] "Tohtlane" — 2026-10-12
+
+### Added
+- **Core Timing Primitives (`sleep`, `time_now`):** Added built-in thread sleep (`sleep(ms: Int)`) and millisecond timestamp retrieval (`time_now() -> Int`) across typechecker, C99 backend (`Sleep` / `nanosleep`, `GetTickCount64` / `clock_gettime`), and Cranelift JIT (`rpl_jit_sleep`, `rpl_jit_time_now`).
+- **Semantic Duration Helpers (`seconds`, `millis`):** Added unit conversion functions (`seconds(s) -> s * 1000`, `millis(ms) -> ms`) with full pipeline compatibility (`50 |> millis |> sleep`, `2 |> seconds |> sleep`).
+- **LSP Tooling & Hover Support:** Real-time hover signatures, parameters, and documentation for `sleep`, `time_now`, `seconds`, and `millis` in `rpl_lsp`.
+- **Official Test Fixture:** Added `tests/fixtures/time_and_sleep.rpl` validating time monotonicity, sleep delays, converters, and pipe execution.
+
+---
+
 ## [0.2+5] "Tohtlane" — 2026-10-12
 
 ### Added

@@ -180,6 +180,39 @@ impl Environment {
             },
         );
 
+        // Core built-in timing primitives and converters
+        self.functions.insert(
+            "sleep".to_string(),
+            FnSignature {
+                params: vec![Param::new("ms".to_string(), Type::Int, Span::dummy())],
+                return_type: None,
+            },
+        );
+
+        self.functions.insert(
+            "time_now".to_string(),
+            FnSignature {
+                params: vec![],
+                return_type: Some(Type::Int),
+            },
+        );
+
+        self.functions.insert(
+            "seconds".to_string(),
+            FnSignature {
+                params: vec![Param::new("s".to_string(), Type::Int, Span::dummy())],
+                return_type: Some(Type::Int),
+            },
+        );
+
+        self.functions.insert(
+            "millis".to_string(),
+            FnSignature {
+                params: vec![Param::new("ms".to_string(), Type::Int, Span::dummy())],
+                return_type: Some(Type::Int),
+            },
+        );
+
         self.functions.insert(
             "trit_to_str".to_string(),
             FnSignature {

@@ -250,6 +250,8 @@ fn test_all_valid_fixtures_check() {
         "control_flow.rpl",
         "functions_pipeline.rpl",
         "io_complete.rpl",
+        "while_assert_len.rpl",
+        "time_and_sleep.rpl",
     ];
 
     for fixture in valid_fixtures {

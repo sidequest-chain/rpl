@@ -145,6 +145,10 @@ pub fn get_hover_for_word(word: &str, source: &str) -> Option<String> {
         "while" => "**`while`** (Keyword)\n\nRepeats a block while the condition evaluates to `true`: `while cond: ... end`.",
         "assert" => "**`fn assert(cond: Bool)`**\n\nAborts execution with an error message if `cond` evaluates to false.",
         "len" => "**`fn len(val: String) -> Int`**\n\nReturns the byte length of the string.",
+        "sleep" => "**`fn sleep(ms: Int)`**\n\nSuspends thread execution for the specified number of milliseconds.\n\n*Examples:*\n`sleep(50)`\n`2 |> seconds |> sleep`",
+        "time_now" => "**`fn time_now() -> Int`**\n\nReturns the current timestamp in milliseconds (epoch/monotonic timestamp).",
+        "seconds" => "**`fn seconds(s: Int) -> Int`**\n\nSemantic helper that converts seconds to milliseconds (`s * 1000`).",
+        "millis" => "**`fn millis(ms: Int) -> Int`**\n\nSemantic helper identity function returning milliseconds (`ms`).",
         _ => {
             // 2. Search declarations in parsed AST
             if let Ok(prog) = rpl_parser::parse_program(source) {

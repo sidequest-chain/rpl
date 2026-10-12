@@ -154,6 +154,22 @@ end
     let hover_len = get_hover_for_word("len", source);
     assert!(hover_len.is_some());
     assert!(hover_len.unwrap().contains("fn len"));
+
+    let hover_sleep = get_hover_for_word("sleep", source);
+    assert!(hover_sleep.is_some());
+    assert!(hover_sleep.unwrap().contains("fn sleep"));
+
+    let hover_time_now = get_hover_for_word("time_now", source);
+    assert!(hover_time_now.is_some());
+    assert!(hover_time_now.unwrap().contains("fn time_now"));
+
+    let hover_seconds = get_hover_for_word("seconds", source);
+    assert!(hover_seconds.is_some());
+    assert!(hover_seconds.unwrap().contains("fn seconds"));
+
+    let hover_millis = get_hover_for_word("millis", source);
+    assert!(hover_millis.is_some());
+    assert!(hover_millis.unwrap().contains("fn millis"));
 }
 
 #[test]

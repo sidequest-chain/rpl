@@ -473,3 +473,25 @@ let l = len(123)
     assert!(err_len.is_err());
 }
 
+#[test]
+fn test_time_and_sleep_typechecking() {
+    let source = include_str!("../../../tests/fixtures/time_and_sleep.rpl");
+    let program = parse_program(source).expect("Failed to parse time_and_sleep.rpl");
+    let result = check_program(&program);
+    assert!(result.is_ok(), "Type checking failed: {result:?}");
+
+    // Test sleep param must be Int
+    let bad_sleep = r#"
+sleep("not an int")
+"#;
+    let prog_bad_sleep = parse_program(bad_sleep).expect("parse error");
+    assert!(check_program(&prog_bad_sleep).is_err());
+
+    // Test seconds param must be Int
+    let bad_sec = r#"
+let s = seconds("five")
+"#;
+    let prog_bad_sec = parse_program(bad_sec).expect("parse error");
+    assert!(check_program(&prog_bad_sec).is_err());
+}
+
