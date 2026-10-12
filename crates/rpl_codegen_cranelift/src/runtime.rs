@@ -137,13 +137,22 @@ pub extern "C" fn rpl_jit_trit_to_str(v: i8) -> *const u8 {
     }
 }
 
+/// Asserts that a condition is true (non-zero). If false, prints an assertion error and terminates the process.
+#[no_mangle]
+pub extern "C" fn rpl_jit_assert(cond: bool) {
+    if !cond {
+        eprintln!("Assertion failed");
+        std::process::exit(1);
+    }
+}
+
 /// Calculates the byte length of a null-terminated string.
 #[no_mangle]
-pub extern "C" fn rpl_jit_str_len(s: *const u8) -> usize {
+pub extern "C" fn rpl_jit_str_len(s: *const u8) -> i64 {
     if s.is_null() {
         return 0;
     }
-    unsafe { CStr::from_ptr(s as *const _).to_bytes().len() }
+    unsafe { CStr::from_ptr(s as *const _).to_bytes().len() as i64 }
 }
 
 /// Managed file stream handle in JIT memory.
@@ -315,6 +324,7 @@ pub fn register_runtime_symbols(builder: &mut JITBuilder) {
     builder.symbol("rpl_jit_float_to_str", rpl_jit_float_to_str as *const u8);
     builder.symbol("rpl_jit_bool_to_str", rpl_jit_bool_to_str as *const u8);
     builder.symbol("rpl_jit_trit_to_str", rpl_jit_trit_to_str as *const u8);
+    builder.symbol("rpl_jit_assert", rpl_jit_assert as *const u8);
     builder.symbol("rpl_jit_str_len", rpl_jit_str_len as *const u8);
     builder.symbol("rpl_jit_input", rpl_jit_input as *const u8);
     builder.symbol("rpl_jit_read_file", rpl_jit_read_file as *const u8);

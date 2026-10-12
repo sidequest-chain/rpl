@@ -594,3 +594,30 @@ end User
     assert_eq!(prog.statements.len(), 2);
 }
 
+#[test]
+fn test_while_loop_parsing() {
+    let code = r#"
+let mut x = 5
+while x > 0:
+    x = x - 1
+end while
+"#;
+    let prog = parse_program(code).expect("Should parse while loop with labeled end");
+    assert_eq!(prog.statements.len(), 2);
+    match &prog.statements[1] {
+        rpl_ast::Stmt::While { condition, body, .. } => {
+            assert!(matches!(condition, rpl_ast::Expr::Binary { .. }));
+            assert_eq!(body.len(), 1);
+        }
+        other => panic!("Expected Stmt::While, got {other:?}"),
+    }
+
+    let code_unlabeled = r#"
+while true:
+    print "looping"
+end
+"#;
+    let prog2 = parse_program(code_unlabeled).expect("Should parse while loop with unlabeled end");
+    assert_eq!(prog2.statements.len(), 1);
+}
+

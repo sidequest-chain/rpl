@@ -1,0 +1,27 @@
+// Core Control Flow While & Built-ins Assert and Len Fixture
+
+// 1. Test len built-in
+let greeting = "hello"
+let greeting_len = len(greeting)
+assert(greeting_len == 5)
+assert(len("world") == 5)
+assert(len("") == 0)
+
+// 2. Test assert with boolean expressions
+assert(true)
+assert(10 > 5)
+assert(greeting_len <= 10)
+
+// 3. Test while loop with mutable counter
+let mut counter = 5
+let mut total = 0
+
+while counter > 0:
+    total = total + counter
+    counter = counter - 1
+end while
+
+assert(counter == 0)
+assert(total == 15)
+
+println("While, assert, and len verified successfully. Total: $total")

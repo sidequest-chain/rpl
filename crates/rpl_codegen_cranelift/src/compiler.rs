@@ -220,6 +220,11 @@ impl Compiler {
         sig_slen.returns.push(AbiParam::new(types::I64));
         module.declare_function("rpl_jit_str_len", Linkage::Import, &sig_slen)?;
 
+        // assert: (i8) -> ()
+        let mut sig_assert = module.make_signature();
+        sig_assert.params.push(AbiParam::new(types::I8));
+        module.declare_function("rpl_jit_assert", Linkage::Import, &sig_assert)?;
+
         // input: () -> ptr
         let mut sig_input = module.make_signature();
         sig_input.returns.push(AbiParam::new(ptr_ty));
@@ -630,6 +635,52 @@ impl Compiler {
 
                 builder.switch_to_block(merge_block);
                 builder.seal_block(merge_block);
+                Ok(())
+            }
+
+            Stmt::While {
+                condition,
+                body,
+                ..
+            } => {
+                let header_block = builder.create_block();
+                let body_block = builder.create_block();
+                let exit_block = builder.create_block();
+
+                builder.ins().jump(header_block, &[]);
+
+                // Header block: evaluate condition
+                builder.switch_to_block(header_block);
+                let cond_val = self.compile_expr(module, builder, condition, Some(&Type::Bool))?;
+                let cond_ty = builder.func.dfg.value_type(cond_val);
+
+                let is_true = if cond_ty == types::I8 {
+                    let one = builder.ins().iconst(types::I8, 1);
+                    builder.ins().icmp(IntCC::Equal, cond_val, one)
+                } else if cond_ty == types::I64 {
+                    let zero = builder.ins().iconst(types::I64, 0);
+                    builder.ins().icmp(IntCC::NotEqual, cond_val, zero)
+                } else {
+                    cond_val
+                };
+
+                builder.ins().brif(is_true, body_block, &[], exit_block, &[]);
+
+                // Body block
+                builder.switch_to_block(body_block);
+                builder.seal_block(body_block);
+                for s in body {
+                    self.compile_stmt(module, builder, s)?;
+                }
+                if !is_block_filled(builder) {
+                    builder.ins().jump(header_block, &[]);
+                }
+
+                builder.seal_block(header_block);
+
+                // Exit block
+                builder.switch_to_block(exit_block);
+                builder.seal_block(exit_block);
                 Ok(())
             }
 
@@ -1075,10 +1126,22 @@ impl Compiler {
                 "read_line" => Some("rpl_jit_read_line"),
                 "write_line" => Some("rpl_jit_write_line"),
                 "close_file" => Some("rpl_jit_close_file"),
+                "assert" => Some("rpl_jit_assert"),
+                "len" => Some("rpl_jit_str_len"),
                 _ => None,
             };
 
             if let Some(rt_name) = runtime_fn_name {
+                let mut call_args = args;
+                if rt_name == "rpl_jit_assert" {
+                    if let Some(first) = call_args.first_mut() {
+                        let ty = builder.func.dfg.value_type(*first);
+                        if ty != types::I8 {
+                            let zero = builder.ins().iconst(ty, 0);
+                            *first = builder.ins().icmp(IntCC::NotEqual, *first, zero);
+                        }
+                    }
+                }
                 let fn_id = module
                     .get_name(rt_name)
                     .and_then(|f| match f {
@@ -1089,7 +1152,7 @@ impl Compiler {
                         name: rt_name.to_string(),
                     })?;
                 let local_fn = module.declare_func_in_func(fn_id, builder.func);
-                let call_inst = builder.ins().call(local_fn, &args);
+                let call_inst = builder.ins().call(local_fn, &call_args);
                 let results = builder.inst_results(call_inst);
                 if let Some(res) = results.first() {
                     return Ok(*res);
@@ -1465,7 +1528,8 @@ impl Compiler {
             Expr::Pipe { right, .. } => match right.as_ref() {
                 Expr::Call { .. } => self.infer_expr_type(right),
                 Expr::Identifier(name, _) => match name.as_str() {
-                    "print" | "println" | "close_file" => Type::Int,
+                    "print" | "println" | "close_file" | "assert" => Type::Int,
+                    "len" => Type::Int,
                     "read_file" | "read_line" => Type::String,
                     "write_file" | "append_file" | "write_line" => Type::Bool,
                     "open_file" => Type::File,
@@ -1485,7 +1549,8 @@ impl Compiler {
                         "input" | "read_file" | "read_line" => return Type::String,
                         "write_file" | "append_file" | "write_line" => return Type::Bool,
                         "open_file" => return Type::File,
-                        "close_file" => return Type::Int,
+                        "close_file" | "assert" => return Type::Int,
+                        "len" => return Type::Int,
                         _ => {}
                     }
                     if let Some(meta) = self.functions.get(fn_name) {

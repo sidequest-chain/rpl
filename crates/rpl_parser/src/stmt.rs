@@ -75,6 +75,7 @@ impl<'a> Parser<'a> {
             Token::Type => self.parse_type_decl(),
             Token::If => self.parse_if_stmt(),
             Token::Match => self.parse_match_stmt(),
+            Token::While => self.parse_while_stmt(),
             Token::For => self.parse_for_stmt(false),
             Token::Parallel => {
                 self.advance();
@@ -331,6 +332,21 @@ impl<'a> Parser<'a> {
                 span,
             })
         }
+    }
+
+    /// Parses `while condition: body end`.
+    fn parse_while_stmt(&mut self) -> Result<Stmt, ParserError> {
+        let start_span = self.expect_token(&Token::While, "'while'")?;
+        let condition = self.parse_expr()?;
+        let colon_span = self.expect_token(&Token::Colon, "':'")?;
+        self.push_block("while", None, colon_span);
+        let body = self.parse_block(colon_span)?;
+        let end_span = self.expect_block_end()?;
+        Ok(Stmt::While {
+            condition,
+            body: body.stmts,
+            span: start_span.combine(end_span),
+        })
     }
 
     /// Parses `spawn: body end`.

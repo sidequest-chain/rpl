@@ -277,6 +277,16 @@ pub enum Stmt {
         span: Span,
     },
 
+    /// While loop (`while condition: body end`).
+    While {
+        /// Loop condition expression.
+        condition: Expr,
+        /// Loop body statements.
+        body: Vec<Stmt>,
+        /// Source code span of the while loop.
+        span: Span,
+    },
+
     /// Sequential for loop (`for item_name in iterator: body end`).
     For {
         /// Loop variable identifier name.
@@ -327,6 +337,7 @@ impl Stmt {
             Self::TypeDecl { span, .. } => *span,
             Self::If { span, .. } => *span,
             Self::Match { span, .. } => *span,
+            Self::While { span, .. } => *span,
             Self::For { span, .. } => *span,
             Self::ParallelFor { span, .. } => *span,
             Self::Spawn { span, .. } => *span,

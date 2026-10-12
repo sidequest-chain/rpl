@@ -142,6 +142,9 @@ pub fn get_hover_for_word(word: &str, source: &str) -> Option<String> {
         "read_line" => "**`fn read_line(file: File) -> String`**\n\nReads a single line from an open file stream without closing the handle.",
         "write_line" => "**`fn write_line(file: File, line: String) -> Bool`**\n\nWrites a line of text followed by newline to an open file stream and flushes without closing the handle.",
         "close_file" => "**`fn close_file(file: File)`**\n\nCloses the open file stream. Consumes ownership of the file handle.",
+        "while" => "**`while`** (Keyword)\n\nRepeats a block while the condition evaluates to `true`: `while cond: ... end`.",
+        "assert" => "**`fn assert(cond: Bool)`**\n\nAborts execution with an error message if `cond` evaluates to false.",
+        "len" => "**`fn len(val: String) -> Int`**\n\nReturns the byte length of the string.",
         _ => {
             // 2. Search declarations in parsed AST
             if let Ok(prog) = rpl_parser::parse_program(source) {

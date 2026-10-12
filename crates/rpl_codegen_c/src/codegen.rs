@@ -77,6 +77,8 @@ impl CGenerator {
         fn_return_types.insert("read_line".to_string(), Type::String);
         fn_return_types.insert("write_line".to_string(), Type::Bool);
         fn_return_types.insert("close_file".to_string(), Type::Named("Unit".into()));
+        fn_return_types.insert("assert".to_string(), Type::Named("Unit".into()));
+        fn_return_types.insert("len".to_string(), Type::Int);
 
         Self {
             type_decls: Vec::new(),
@@ -326,9 +328,15 @@ impl CGenerator {
                 let ty = type_annot.clone().unwrap_or(inferred_ty);
                 self.var_types.insert(name.clone(), ty.clone());
                 let c_val = self.generate_expr_with_expected(value, Some(&ty))?;
+                let base_ty = to_c_type(&ty);
+                let c_type_str = if base_ty.starts_with("const ") {
+                    base_ty
+                } else {
+                    format!("const {base_ty}")
+                };
                 Ok(format!(
-                    "const {} {} = {};",
-                    to_c_type(&ty),
+                    "{} {} = {};",
+                    c_type_str,
                     sanitize_ident(name),
                     c_val
                 ))
@@ -404,6 +412,28 @@ impl CGenerator {
                     out.push_str(&self.generate_match_case(case, &subject_ty)?);
                 }
 
+                self.indent_level -= 1;
+                out.push_str(&format!("{}}}", self.indent()));
+                Ok(out)
+            }
+
+            Stmt::While {
+                condition,
+                body,
+                ..
+            } => {
+                let c_cond = self.generate_expr(condition)?;
+                let cond_str = if c_cond.starts_with('(') && c_cond.ends_with(')') {
+                    &c_cond[1..c_cond.len() - 1]
+                } else {
+                    &c_cond
+                };
+                let mut out = format!("while ({cond_str}) {{\n");
+                self.indent_level += 1;
+                for s in body {
+                    let line = self.generate_stmt(s)?;
+                    out.push_str(&format!("{}{}\n", self.indent(), line));
+                }
                 self.indent_level -= 1;
                 out.push_str(&format!("{}}}", self.indent()));
                 Ok(out)
@@ -681,6 +711,12 @@ impl CGenerator {
                         }
                         Ok(format!("{}({})", c_callee, all_args.join(", ")))
                     }
+                    Expr::Identifier(name, _) if name == "assert" => {
+                        Ok(format!("rpl_assert({c_left})"))
+                    }
+                    Expr::Identifier(name, _) if name == "len" => {
+                        Ok(format!("rpl_str_len({c_left})"))
+                    }
                     _ => {
                         let c_right = self.generate_expr(right)?;
                         Ok(format!("{c_right}({c_left})"))
@@ -692,6 +728,24 @@ impl CGenerator {
                 if let Expr::Identifier(fn_name, _) = callee.as_ref() {
                     if fn_name == "print" || fn_name == "println" {
                         return self.generate_print_call(fn_name == "println", args);
+                    }
+
+                    if fn_name == "assert" {
+                        let c_arg = if let Some(first) = args.first() {
+                            self.generate_expr(first)?
+                        } else {
+                            "true".to_string()
+                        };
+                        return Ok(format!("rpl_assert({c_arg})"));
+                    }
+
+                    if fn_name == "len" {
+                        let c_arg = if let Some(first) = args.first() {
+                            self.generate_expr(first)?
+                        } else {
+                            "\"\"".to_string()
+                        };
+                        return Ok(format!("rpl_str_len({c_arg})"));
                     }
 
                     // Check if it's a struct constructor: TypeName(...)

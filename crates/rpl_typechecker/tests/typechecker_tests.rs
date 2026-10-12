@@ -429,3 +429,47 @@ write_line(f, "Attempt write after piped close")
     );
 }
 
+#[test]
+fn test_while_assert_len_typechecking() {
+    let source = r#"
+let mut counter = 10
+while counter > 0:
+    counter = counter - 1
+end while
+
+let s = "hello"
+let n = len(s)
+assert(n == 5)
+assert(counter == 0)
+"#;
+    let program = parse_program(source).expect("parse error");
+    let result = check_program(&program);
+    assert!(result.is_ok(), "Type checking failed: {result:?}");
+
+    // Test while condition must be Bool
+    let invalid_while = r#"
+while 42:
+    print "invalid"
+end
+"#;
+    let prog_bad = parse_program(invalid_while).expect("parse error");
+    let err_res = check_program(&prog_bad);
+    assert!(err_res.is_err());
+
+    // Test assert param must be Bool
+    let invalid_assert = r#"
+assert("not a bool")
+"#;
+    let prog_bad_assert = parse_program(invalid_assert).expect("parse error");
+    let err_assert = check_program(&prog_bad_assert);
+    assert!(err_assert.is_err());
+
+    // Test len param must be String
+    let invalid_len = r#"
+let l = len(123)
+"#;
+    let prog_bad_len = parse_program(invalid_len).expect("parse error");
+    let err_len = check_program(&prog_bad_len);
+    assert!(err_len.is_err());
+}
+

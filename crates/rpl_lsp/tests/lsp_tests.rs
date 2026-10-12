@@ -141,6 +141,19 @@ end
     let hover_close = get_hover_for_word("close_file", source);
     assert!(hover_close.is_some());
     assert!(hover_close.unwrap().contains("Consumes ownership"));
+
+    // Hover over while, assert, and len
+    let hover_while = get_hover_for_word("while", source);
+    assert!(hover_while.is_some());
+    assert!(hover_while.unwrap().contains("while"));
+
+    let hover_assert = get_hover_for_word("assert", source);
+    assert!(hover_assert.is_some());
+    assert!(hover_assert.unwrap().contains("fn assert"));
+
+    let hover_len = get_hover_for_word("len", source);
+    assert!(hover_len.is_some());
+    assert!(hover_len.unwrap().contains("fn len"));
 }
 
 #[test]

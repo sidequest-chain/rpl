@@ -252,6 +252,27 @@ impl TypeChecker {
                 }
             }
 
+            Stmt::While {
+                condition,
+                body,
+                ..
+            } => {
+                let cond_ty = self.check_expr(condition);
+                if cond_ty != Type::Bool {
+                    self.errors.push(TypeError::TypeMismatch {
+                        expected: Type::Bool,
+                        found: cond_ty,
+                        span: condition.span(),
+                    });
+                }
+
+                self.env.enter_scope();
+                for s in body {
+                    self.check_stmt(s);
+                }
+                self.env.exit_scope();
+            }
+
             Stmt::For {
                 item_name,
                 iterator,
@@ -846,6 +867,27 @@ impl TypeChecker {
 
             // Defined function
             if let Some(sig) = self.env.lookup_fn(name).cloned() {
+                if name == "assert" {
+                    if let Some(arg_ty) = arg_types.first() {
+                        if !self.types_compatible(&Type::Bool, arg_ty) {
+                            self.errors.push(TypeError::TypeMismatch {
+                                expected: Type::Bool,
+                                found: arg_ty.clone(),
+                                span,
+                            });
+                        }
+                    }
+                } else if name == "len" {
+                    if let Some(arg_ty) = arg_types.first() {
+                        if !self.types_compatible(&Type::String, arg_ty) {
+                            self.errors.push(TypeError::TypeMismatch {
+                                expected: Type::String,
+                                found: arg_ty.clone(),
+                                span,
+                            });
+                        }
+                    }
+                }
                 return sig.return_type.unwrap_or(Type::Named("Unit".into()));
             }
 

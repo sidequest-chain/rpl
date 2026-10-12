@@ -260,4 +260,25 @@ println("Content: $content")
     }
 }
 
+#[test]
+fn test_while_assert_len_codegen() {
+    let source = r#"
+let mut count = 3
+while count > 0:
+    count = count - 1
+end while
+
+let s = "hello"
+let l = len(s)
+assert(l == 5)
+assert(count == 0)
+"#;
+    let program = parse_program(source).expect("Failed to parse source");
+    let c_code = generate_c(&program).expect("Failed to generate C code");
+
+    assert!(c_code.contains("while (count > 0LL)"));
+    assert!(c_code.contains("rpl_assert"));
+    assert!(c_code.contains("rpl_str_len"));
+}
+
 

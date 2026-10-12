@@ -133,3 +133,28 @@ close_file(r)
     let _ = std::fs::remove_file("test_jit_stream_temp.log");
 }
 
+#[test]
+fn test_jit_while_assert_len() {
+    let source = r#"
+let greeting = "hello"
+let greeting_len = len(greeting)
+assert(greeting_len == 5)
+assert(len("") == 0)
+
+let mut counter = 5
+let mut total = 0
+while counter > 0:
+    total = total + counter
+    counter = counter - 1
+end while
+
+assert(counter == 0)
+assert(total == 15)
+0
+"#;
+    let program = parse_program(source).expect("Failed to parse while_assert_len test");
+    let exit_code = run_program(&program).expect("Failed to execute while_assert_len in JIT");
+    assert_eq!(exit_code, 0);
+}
+
+

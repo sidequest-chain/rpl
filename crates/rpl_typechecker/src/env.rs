@@ -163,6 +163,23 @@ impl Environment {
             },
         );
 
+        // Core built-in assertion and introspection intrinsics
+        self.functions.insert(
+            "assert".to_string(),
+            FnSignature {
+                params: vec![Param::new("cond".to_string(), Type::Bool, Span::dummy())],
+                return_type: None,
+            },
+        );
+
+        self.functions.insert(
+            "len".to_string(),
+            FnSignature {
+                params: vec![Param::new("val".to_string(), Type::String, Span::dummy())],
+                return_type: Some(Type::Int),
+            },
+        );
+
         self.functions.insert(
             "trit_to_str".to_string(),
             FnSignature {

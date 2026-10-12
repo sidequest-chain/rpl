@@ -241,5 +241,20 @@ RPL_INLINE void rpl_close_file(rpl_file_t file) {
     }
 }
 
+/* --- Core Built-ins: assert and len --- */
+RPL_INLINE void rpl_assert(bool cond) {
+    if (!cond) {
+        fprintf(stderr, "Assertion failed\n");
+        exit(1);
+    }
+}
+
+RPL_INLINE int64_t rpl_str_len(const char* s) {
+    return s ? (int64_t)strlen(s) : 0;
+}
+
+#define assert(cond) rpl_assert(cond)
+#define len(s) rpl_str_len(s)
+
 #endif /* RPL_RUNTIME_H */
 "#;

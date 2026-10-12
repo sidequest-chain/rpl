@@ -73,8 +73,7 @@ The following language constructs are fully implemented across the parser, typec
 ### 2.4. Control Flow & Pattern Matching
 - **Conditional Branching:** `if condition: ... else if: ... else: ... end`.
 - **Sequential Iteration:** `for item in start..end: ... end` (supports inclusive/exclusive ranges).
-  > [!WARNING]
-  > **`while` loops are NOT implemented in milestone 0.2.** The `while` keyword is recognized by the lexer, but neither the AST (`rpl_ast::Stmt`), parser (`rpl_parser::stmt`), nor codegen backends support `while`. Use `for i in start..end:` with `if`/`match` state flags for loops in 0.2.
+- **While Loops:** `while condition: ... end while` (or unlabeled `end`). Repeatedly evaluates `condition` (must evaluate to `Bool`) and executes the loop body. Fully supported across C99 and Cranelift JIT.
 - **Pattern Matching (`match`):**
   - Literal patterns (`case 42:`, `case true:`, `case unknown:`).
   - Wildcard pattern (`case _:`).
@@ -111,11 +110,15 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
   - `close_file(f)` and `f |> close_file` take ownership of `f` (move semantics).
   - Any subsequent attempt to read, write, or re-close `f` is rejected at compile time by the typechecker with `Use of moved value 'f'`, preventing dangling handle vulnerabilities.
 
+### 2.7. Core Built-in Intrinsics (`assert`, `len`)
+- **`assert(cond: Bool)`**: Validates invariant condition at runtime. If `false`, prints an assertion error message to stderr and terminates process execution with exit code 1.
+- **`len(val: String) -> Int`**: Evaluates the byte length of a string as a 64-bit signed integer (`Int`). Supports both direct call `len(s)` and pipeline composition `s |> len`.
+
 > [!IMPORTANT]
 > **Strict Code Generation Directives for AI Agents & Developers:**
 > 1. **Functions:** Always declare callable logic using `fn name(param: Type) -> RetType: ... end fn`. Never use `let f = ... => ...` with the intention of calling `f()`.
 > 2. **Parameter Types:** Function parameters require explicit uppercase types (`Int`, `Float`, `Bool`, `String`, `Trit`, `File`, or a struct name). Lowercase types like `int` are rejected.
-> 3. **Block Delimiters:** Scopes always open with `:` and close with `end` or labeled `end <keyword>` (`end fn`, `end for`, `end match`, `end type`). Never use curly braces `{}` or semicolons `;`.
+> 3. **Block Delimiters:** Scopes always open with `:` and close with `end` or labeled `end <keyword>` (`end fn`, `end for`, `end while`, `end match`, `end type`). Never use curly braces `{}` or semicolons `;`.
 > 4. **Print & Interpolation:** `println("Count: $counter, Sensor: $s.id")` works out-of-the-box in both C99 and Cranelift JIT.
 > 5. **File I/O:** Use `read_file` / `write_file` for quick scripts and `open_file` / `write_line` / `close_file` for streaming loggers and daemons. Always ensure `close_file` is called once per handle.
 
@@ -132,7 +135,7 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
 | **Mutable Variables (`let mut`)** | ✅ Full | ✅ Enforced | ✅ Full (`int64_t b = ...`) | ✅ Full (Cranelift Var) | ✅ Tokens |
 | **Use-After-Move Check** | ✅ Full | ✅ Rejection | N/A (Static check) | N/A (Static check) | ✅ Diagnostics |
 | **Range For Loops (`1..5`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
-| **`while` Loops (`while cond:`)** | ⚠️ Lexer only | ❌ Not in AST | ❌ Not in parser | ❌ Not supported | ❌ None |
+| **`while` Loops (`while cond:`)** | ✅ Full | ✅ Full | ✅ Full (`while (...)`) | ✅ Full (brif loop) | ✅ Full |
 | **Struct Declaration & Access** | ✅ Full | ✅ Type verified | ✅ Full (`typedef struct`) | ✅ Full (Offset read) | ✅ Hover & Tokens |
 | **Struct Block Init (`Point: ... end`)** | ✅ Full | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
 | **Named Functions (`fn name(...)`)** | ✅ Full | ✅ Full | ✅ Full (`rpl_fn`) | ✅ Full | ✅ Full |
@@ -145,8 +148,8 @@ RPL features a native, zero-dependency two-tier I/O architecture combining high-
 | **System Stream Handle (`File`)** | ✅ Full | ✅ Full (Opaque) | ✅ Full (`rpl_file_t`) | ✅ Full (`*mut JitFile`) | ✅ Hover & Tokens |
 | **Stream File Operations (`open_file`, `read_line`, `write_line`)** | ✅ Full | ✅ Full | ✅ Full (`fopen`/`fgets`/`fputs`) | ✅ Full (`rpl_jit_*`) | ✅ Hover |
 | **Affine Stream Closing (`close_file`)** | ✅ Full | ✅ Enforced Move | ✅ Full (`fclose`) | ✅ Full (`rpl_jit_close_file`) | ✅ Hover & Move Err |
-| **`assert(cond: Bool)`** | ❌ Not in lexer/parser | ❌ Not in `env.rs` | ❌ Not in runtime | ❌ Not supported | ❌ None |
-| **`len(val: String)`** | ❌ Not in lexer/parser | ❌ Not in `env.rs` | ❌ Not in runtime | ⚠️ Declared symbol only (not wired) | ❌ None |
+| **`assert(cond: Bool)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_assert`) | ✅ Full (`rpl_jit_assert`) | ✅ Hover |
+| **`len(val: String)`** | ✅ Full | ✅ Full | ✅ Full (`rpl_str_len`) | ✅ Full (`rpl_jit_str_len`) | ✅ Hover |
 | **Lambdas / Closures (`=>`)** | ✅ Parsed | ⚠️ Untyped expr only | ⚠️ Prototype | ⚠️ Prototype | ✅ Tokens |
 | **Callable Variables (`let f = ...; f()`)** | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ Not supported | ❌ TypeError |
 | **List Literals (`[1, 2, 3]`)** | ✅ Parsed | ⚠️ In progress | ⚠️ Prototype | ⚠️ Not wired | ✅ Tokens |

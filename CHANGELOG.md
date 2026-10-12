@@ -7,6 +7,17 @@ and this project adheres to the RPL Versioning Policy (`MAJOR.MINOR[+PATCH] "Cod
 
 ---
 
+## [0.2+5] "Tohtlane" — 2026-10-12
+
+### Added
+- **Core `while` Loop Statement:** Implemented `while <cond>:` loop across AST, recursive descent parser, typechecker, C99 backend, and Cranelift JIT SSA block lowering. Supports both labeled `end while` and plain `end`.
+- **`assert(cond: Bool)` Built-in Intrinsic:** Integrated runtime assertion intrinsic verifying invariants in C99 (`rpl_assert`) and Cranelift JIT (`rpl_jit_assert`), with static boolean argument typechecking.
+- **`len(val: String) -> Int` Built-in Intrinsic:** Added string byte length calculation intrinsic across both execution backends (`rpl_str_len` in C99 and `rpl_jit_str_len` in Cranelift JIT) with pipeline support (`s |> len`).
+- **LSP Tooling & Hover Support:** Live hover signatures and documentation for `while`, `assert`, and `len` in `rpl_lsp` Language Server Protocol daemon.
+- **Official Test Fixture:** Added `tests/fixtures/while_assert_len.rpl` validating while loops, assert, and len operations.
+
+---
+
 ## [0.2+4] "Tohtlane" — 2026-10-01
 
 ### Added

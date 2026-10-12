@@ -199,7 +199,7 @@ rpl_lexer
     - `InterpolationFragment`: `Literal(String)` and `Expr(Box<Expr>)` for `$var` / `$(expr)`.
   - `src/stmt.rs`:
     - `Program`: Root AST node containing `Vec<Stmt>`.
-    - `Stmt`: `Let`, `MutLet`, `Assign`, `FnDecl`, `TypeDecl`, `If`, `Match`, `For`, `ParallelFor`, `Spawn`, `Return`, `Expr`. (Note: `while` is not yet an AST statement).
+    - `Stmt`: `Let`, `MutLet`, `Assign`, `FnDecl`, `TypeDecl`, `If`, `Match`, `While`, `For`, `ParallelFor`, `Spawn`, `Return`, `Expr`.
     - `Pattern`: Match case patterns including literals, identifiers, wildcards, and Trit variants.
   - `src/error.rs`: `AstError` error definitions via `thiserror`.
 
@@ -391,8 +391,8 @@ When locating, debugging, or adding built-in functions, refer to this exact cros
 | `write_line(handle: File, line) -> Bool`| `src/env.rs` | `src/runtime.rs:rpl_write_line` | `src/runtime.rs:rpl_jit_write_line` | `src/lib.rs` |
 | `close_file(handle: File)` *(Affine)* | `src/env.rs` & `checker.rs` | `src/runtime.rs:rpl_close_file` | `src/runtime.rs:rpl_jit_close_file` | `src/lib.rs` |
 | `trit_to_str(t: Trit) -> String` | `src/env.rs` | `src/runtime.rs:rpl_trit_to_str` | `src/runtime.rs:rpl_jit_trit_to_str` | `src/lib.rs` |
-| `len(val: String) -> Int` *(Roadmap)* | ❌ Not in `src/env.rs` | ❌ Not in `src/runtime.rs` | ⚠️ Declared symbol only (not wired) | ❌ None |
-| `assert(cond: Bool)` *(Roadmap)* | ❌ Not in `src/env.rs` | ❌ Not in `src/runtime.rs` | ❌ Not implemented | ❌ None |
+| `assert(cond: Bool)` | `src/env.rs` | `src/runtime.rs:rpl_assert` | `src/runtime.rs:rpl_jit_assert` | `src/lib.rs` |
+| `len(val: String) -> Int` | `src/env.rs` | `src/runtime.rs:rpl_str_len` | `src/runtime.rs:rpl_jit_str_len` | `src/lib.rs` |
 
 ---
 
@@ -445,7 +445,7 @@ sequenceDiagram
 | `UnaryOp` | Enum | `crates/rpl_ast/src/op.rs` | `Neg` (`-`), `Not` (`not`), `BitNot` (`~`). |
 | `Expr` | Enum | `crates/rpl_ast/src/expr.rs` | `Literal`, `Ident`, `Binary`, `Unary`, `Call`, `MemberAccess`, `Index`, `Lambda`, `ListLiteral`, `MapLiteral`, `InterpolatedString`. |
 | `Program` | Struct | `crates/rpl_ast/src/stmt.rs` | `pub struct Program { pub statements: Vec<Stmt>, pub span: Span }` |
-| `Stmt` | Enum | `crates/rpl_ast/src/stmt.rs` | `Let`, `MutLet`, `Assign`, `FnDecl`, `TypeDecl`, `If`, `Match`, `For`, `ParallelFor`, `Spawn`, `Return`, `Expr`. (Note: `While` is not an AST variant). |
+| `Stmt` | Enum | `crates/rpl_ast/src/stmt.rs` | `Let`, `MutLet`, `Assign`, `FnDecl`, `TypeDecl`, `If`, `Match`, `While`, `For`, `ParallelFor`, `Spawn`, `Return`, `Expr`. |
 
 ---
 
