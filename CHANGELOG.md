@@ -14,6 +14,10 @@ and this project adheres to the RPL Versioning Policy (`MAJOR.MINOR[+PATCH] "Cod
 - **Semantic Duration Helpers (`seconds`, `millis`):** Added unit conversion functions (`seconds(s) -> s * 1000`, `millis(ms) -> ms`) with full pipeline compatibility (`50 |> millis |> sleep`, `2 |> seconds |> sleep`).
 - **LSP Tooling & Hover Support:** Real-time hover signatures, parameters, and documentation for `sleep`, `time_now`, `seconds`, and `millis` in `rpl_lsp`.
 - **Official Test Fixture:** Added `tests/fixtures/time_and_sleep.rpl` validating time monotonicity, sleep delays, converters, and pipe execution.
+- **Automated CI/CD Release Notes Pipeline:** Automated release notes extraction from `CHANGELOG.md` in `.github/workflows/release.yml`.
+
+### Fixed
+- **Release Packaging Path Synchronization:** Updated distribution archive bundling in `release.yml` to package `docs/guide/LANGUAGE_GUIDE.md` following documentation taxonomy stratification.
 
 ---
 

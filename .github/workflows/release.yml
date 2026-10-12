@@ -76,7 +76,7 @@ jobs:
           Copy-Item -Path "target/${{ matrix.target }}/release/rpl.exe" -Destination "$pkgDir/"
           Copy-Item -Path "examples/reaktor.rpl" -Destination "$pkgDir/"
           Copy-Item -Path "README.md" -Destination "$pkgDir/"
-          Copy-Item -Path "docs/LANGUAGE_GUIDE.md" -Destination "$pkgDir/"
+          Copy-Item -Path "docs/guide/LANGUAGE_GUIDE.md" -Destination "$pkgDir/"
           Compress-Archive -Path $pkgDir -DestinationPath $artifact -Force
 
       - name: Package release artifact (Linux)
@@ -88,13 +88,35 @@ jobs:
           cp "target/${{ matrix.target }}/release/rpl" "$PKG_DIR/"
           cp "examples/reaktor.rpl" "$PKG_DIR/"
           cp "README.md" "$PKG_DIR/"
-          cp "docs/LANGUAGE_GUIDE.md" "$PKG_DIR/"
+          cp "docs/guide/LANGUAGE_GUIDE.md" "$PKG_DIR/"
           tar -czvf "$ARTIFACT" "$PKG_DIR"
+
+      - name: Extract Release Notes from CHANGELOG
+        shell: bash
+        run: |
+          python -c '
+          with open("CHANGELOG.md", encoding="utf-8") as f:
+              lines = f.readlines()
+          in_release = False
+          notes = []
+          for line in lines:
+              if line.startswith("## ["):
+                  if in_release:
+                      break
+                  in_release = True
+                  continue
+              elif in_release and line.startswith("---"):
+                  break
+              if in_release:
+                  notes.append(line)
+          with open("RELEASE_NOTES.md", "w", encoding="utf-8") as f:
+              f.writelines(notes)
+          '
 
       - name: Publish Release Asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: Release ${{ steps.release_info.outputs.tag }}
+          body_path: RELEASE_NOTES.md
           files: ${{ steps.release_info.outputs.artifact }}
-          generate_release_notes: true
